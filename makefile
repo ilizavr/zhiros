@@ -1,0 +1,21 @@
+CC = gcc
+ASMC = nasm
+
+CFLAGS = -m32
+ASMFLAGS = -f elf32
+LDFLAGS = -m elf_i386 -T linker.ld 
+
+
+build:
+	mkdir build
+	$(CC) $(CFLAGS) -c kernel.c -o build/kernel_c.o
+	$(ASMC) $(ASMFLAGS) kernel.asm -o build/kernel_asm.o
+	ld $(LDFLAGS) -o build/kernel.bin build/kernel_asm.o build/kernel_c.o
+	cp build/kernel.bin iso/boot/kernel.bin
+	grub-mkrescue -o test.iso iso/
+
+run:
+	qemu-system-x86_64 -cdrom test.iso
+
+clean:
+	rm -rf build
