@@ -2,7 +2,7 @@
 
 pkgs.mkShell {
   nativeBuildInputs = with pkgs; [
-    clang #ебало наьбю тому кто будет ныть А ПОЧЕМУ НЕ GCC
+    gcc #СЛАВА GCC, гмаил пижор
     lld
     nasm
     gnumake
