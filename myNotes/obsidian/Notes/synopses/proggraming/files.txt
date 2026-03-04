@@ -1,0 +1,17 @@
+files.txt
+output.txt
+конспект о argc и argv.md
+Конспект по ARP.md
+конспект по BPB.md
+конспект по DHCP.md
+конспект по dig.md
+конспект по DNS.md
+конспект по gdb.md
+конспект по Open Vpn.md
+конспект по tcp.md
+конспект по TLS.md
+конспект по VIM.md
+конспект по web socket.md
+конспект по жадным алгоритмам.md
+конспект по функции getopt.md
+\n #конспект

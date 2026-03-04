@@ -1,0 +1,7 @@
+- https://github.com/grpc-ecosystem/grpc-gateway - it's link for grpc-gateway docs
+- https://www.twilio.com/en-us/blog/developers/community/how-to-create-a-graphql-server-in-go-with-gqlgen - it's link for tutorial how to make a simple graphQL API on Go 
+- https://github.com/graph-gophers/graphql-go - graphQL server in go for use use
+- https://www.elastic.co/docs/reference/kibana - it's link for kibana docs for elastic search
+- https://en.wikipedia.org/wiki/Elasticsearch - it's link for elastic search article in Wikipedia 
+- https://toolshelf.tech/blog/build-high-performance-rest-api-with-go-2025-guide/ - it's link for building high-perfomance REST API(but on reality yet another step-by-step guide)
+- https://go.dev/talks/2013/advconc.slide#18 - it's link for advanced goroutine patterns 

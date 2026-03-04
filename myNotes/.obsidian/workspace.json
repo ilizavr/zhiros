@@ -1,0 +1,262 @@
+{
+  "main": {
+    "id": "9e9938d75e580feb",
+    "type": "split",
+    "children": [
+      {
+        "id": "07523e2d6d277ad6",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "cb9a263d362e9544",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Notes/TODO lists/Current/21.02.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "21.02"
+            }
+          },
+          {
+            "id": "298ae2b351fa1330",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Notes/TODO lists/Current/22.02.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "22.02"
+            }
+          },
+          {
+            "id": "b1d0e1abcc2a2232",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.12.4"
+              },
+              "icon": "lucide-book-up",
+              "title": "Release Notes 1.12.4"
+            }
+          },
+          {
+            "id": "80477bfc9e457e5b",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Notes/TODO lists/Current/22.02.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "22.02"
+            }
+          }
+        ],
+        "currentTab": 3
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "fb519ceadb30dc75",
+    "type": "split",
+    "children": [
+      {
+        "id": "2c0f2f2f4c6c2579",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8c2fd09f81a17921",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "7d60f07cf8ee03a6",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "tag:#active_word  ",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200
+  },
+  "right": {
+    "id": "93530c297529eb92",
+    "type": "split",
+    "children": [
+      {
+        "id": "91e6616ddbf3f0cb",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "17a509b820bab09a",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Notes/TODO листы/Текущие/26.08.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for 26.08"
+            }
+          },
+          {
+            "id": "c9ebc18615dc53bc",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "TODO на 6.07.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from TODO на 6.07"
+            }
+          },
+          {
+            "id": "c47bafb5926b89be",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "99b642fbd299f303",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "TODO листы/TODO на 21.06.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of TODO на 21.06"
+            }
+          },
+          {
+            "id": "107a82b4f71d9a82",
+            "type": "leaf",
+            "state": {
+              "type": "mermaid-toolbar-view",
+              "state": {},
+              "icon": "trident-custom",
+              "title": "Mermaid Toolbar"
+            }
+          }
+        ],
+        "currentTab": 4
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "graph:Open graph view": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "mermaid-tools:Open Mermaid Toolbar": false,
+      "templater-obsidian:Templater": false
+    }
+  },
+  "active": "80477bfc9e457e5b",
+  "lastOpenFiles": [
+    "2.03.md",
+    "Notes/synopses/English/Vocalibury/0_INBOX.md",
+    "Notes/TODO lists/Current/22.02.md",
+    "Notes/TODO lists/Current/21.02.md",
+    "Notes/TODO lists/Current/20.02.md",
+    "Notes/synopses/English/Vocalibury/1_ACTIVE/words_on_code.md",
+    "Notes/synopses/English/Vocalibury/1_ACTIVE/words_on_internet.md",
+    "Notes/synopses/English/Vocalibury/2_ARCHIVE/words_on_books.md",
+    "Notes/synopses/English/Vocalibury/1_ACTIVE/words_on_books.md",
+    "Notes/TODO lists/2026/January/19.02.md",
+    "Notes/TODO lists/2026/February/10.02.md",
+    "Notes/definitions/English/Определение глагола to  be.md",
+    "Notes/helper-links/Yandex lms links.md",
+    "Notes/helper-links/Go-backend links.md",
+    "Notes/Templates/template for archive words.md",
+    "Notes/synopses/English/Vocalibury/2_ARCHIVE/words_on_internet.md",
+    "Notes/synopses/English/Vocalibury/2_ARCHIVE/words_on_meetups.md",
+    "Notes/synopses/English/Vocalibury/1_ACTIVE/words_on_meetups.md",
+    "Notes/synopses/English/конспект по глаголу to be.md",
+    "Notes/Templates/template for active words.md",
+    "Notes/Templates/Template for an issue.md",
+    "Notes/Templates/Template for every day tasks.md",
+    "Notes/Templates/Template for summer thems.md",
+    "Notes/Templates/template for inbox word.md",
+    "Notes/TODO lists/2026/February/7.02.md",
+    "Notes/synopses/mini articles.md",
+    "Notes/TODO lists/2026/February",
+    "Notes/synopses/English/Vocalibury",
+    "Notes/synopses/English/Vocalibury/2_ARCHIVE",
+    "Notes/synopses/English/Vocalibury/1_ACTIVE",
+    "Notes/TODO lists/2026/January",
+    "Notes/Photo/dns_header_structure.png",
+    "Notes/TODO lists/2026",
+    "Notes/Photo/frame_header_struct.png",
+    "Notes/Photo/dns_base_structure.png",
+    "Notes/Photo/common-arp.png",
+    "Notes/helper-links",
+    "Notes/TODO lists/2025/December",
+    "Notes/synopses/proggraming/low-level/OS",
+    "Notes/synopses/proggraming/low-level/Compiler",
+    "Untitled.canvas",
+    "Notes/Photo/garp.png",
+    "Notes/Photo/common-arp-answer.png",
+    "Notes/Photo/vor.png",
+    "Notes/Photo/dns_answer_structure.png",
+    "Notes/Photo/dns_question_structure.png"
+  ]
+}
