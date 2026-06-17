@@ -1,7 +1,7 @@
 CC = gcc
 ASMC = nasm
 
-CFLAGS = -m32
+CFLAGS = -m32 -fno-stack-protector
 ASMFLAGS = -f elf32
 LDFLAGS = -m elf_i386 -T linker.ld 
 
@@ -15,7 +15,7 @@ build:
 	grub-mkrescue -o test.iso iso/
 
 run:
-	qemu-system-x86_64 -cdrom test.iso
+	qemu-system-x86_64 -cdrom test.iso -m 512M
 
 clean:
 	rm -rf build

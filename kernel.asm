@@ -1,4 +1,3 @@
-
 bits 32
 
 section .text
@@ -9,13 +8,15 @@ section .text
 	dd -(0x1BADB002+0x00)
 
 global _start
-extern main
+extern _multiboot_entry
 
 _start:
 	cli
 	mov esp, stack
 	
-	call main
+	push eax
+	push ebx
+	call _multiboot_entry
 
 	jmp $
 
