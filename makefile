@@ -13,6 +13,9 @@ build:
 	ld $(LDFLAGS) -o build/kernel.bin build/kernel_asm.o build/kernel_c.o
 	cp build/kernel.bin iso/boot/kernel.bin
 
+build_grub:
+	grub-mkrescue -o test.img iso/
+
 run:
 	qemu-system-x86_64 -kernel build/kernel.bin -initrd iso/boot/initrd.img -m 1G
 
