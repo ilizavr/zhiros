@@ -44,16 +44,5 @@ void register_function(char *function_name, function call)
 	newfnc->name = strdup(function_name);
 	newfnc->call = call;
 	head_fnc = newfnc;
-	KLOGI("registered ");
-	print(function_name);
-	print("\n");
 }
-/*
-struct object *create_string_object(char *str)
-{
-	struct object* newobj = kalloc(sizeof(struct object));
-	newobj->type = OBJECT_STRING;
-	newobj->data = str;
-	newobj->len = strlen(str);
-	return newobj;
-}*/
+

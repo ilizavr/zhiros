@@ -1,4 +1,5 @@
 static struct objectArray* objs = 0;
+
 void start_shell()
 {
 	print("shell started. type help to get command list\n");

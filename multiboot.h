@@ -14,20 +14,40 @@ __attribute__((packed)) struct multiboot_info
 	u32 mmap_len;
 	u32 mmap_addr;
 };
+__attribute__((packed)) struct multiboot_mod_list
+{
+        u32 mod_start;
+        u32 mod_end;
+        u32 cmd_line;
+        u32 pad;
+};
 
-void _multiboot_entry(struct multiboot_info* mbi,u32 magick){
-	if(magick != 0x2BADB002) KLOGF("not multiboot magick");
+void _multiboot_entry(struct multiboot_info* mbi,u32 magic){
+	if(magic != 0x2BADB002) KLOGF("not multiboot magic");
 	if((mbi->flags&(1<<6)) == 0) KLOGF("mmap not given by multiboot");
+	if(mbi->mods_count<1) KLOGF("multiboot dont give initial ramdisk");
+	if(mbi->mods_count>1) KLOGF("multiboot give so many modules");
 	KLOGI("multiboot started kernel. cmdline: ");
-	print((char*)mbi->cmdline);
+	if(mbi->flags&(1<<2))print((char*)mbi->cmdline);
 	print("\n    kernel at 0x");
 	print_hex((u32)_kernel_start);
 	print("-0x");
 	print_hex((u32)_kernel_end);
 	print("\n");
 	
+	struct multiboot_mod_list* mods = (struct multiboot_mod_list *)mbi->mods_addr;
 	
-	init_alloc_multiboot(mbi->mmap_addr,mbi->mmap_len);
+	print("    ramdisk at 0x");
+	print_hex((u32)mods->mod_start);
+	print("-0x");
+	print_hex((u32)mods->mod_end);
+	print("\n");
+	
+
+	ramdisk_size = mods->mod_end;
+	init_alloc_multiboot(mbi->mmap_addr,mbi->mmap_len,mods->mod_end);
+	
+        add_ram_disk("initrd",(char*)mods->mod_start,mods->mod_end-mods->mod_start);
 
 	main();
 }

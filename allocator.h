@@ -1,7 +1,7 @@
 extern char _kernel_end[];
 extern char _kernel_start[];
-#define alligment(size) (((size) + ((0x20) - 1)) & ~((0x20) - 1))
-struct memoryblock
+#define alignment(size) (((size) + ((0x10) - 1)) & ~((0x10) - 1))
+__attribute__((packed)) struct memoryblock
 {
 	u32 size;
 	char allocated;
@@ -17,12 +17,12 @@ __attribute__((packed)) struct multiboot_mmap_entry
         u32 type;
 };
 
-struct memoryblock headblock;
+struct memoryblock headblock = {0,1,0,0};
 
 
 void *kalloc(u32 size)
 {
-	size=alligment(size);
+	size=alignment(size);
 	struct memoryblock *current = headblock.next;
 
 	while(current)
@@ -59,11 +59,27 @@ char * strdup(char *s)
 }
 void free(void *addr)
 {
+	if(!addr) return;
 	struct memoryblock *block = (struct memoryblock*)((u64)addr - sizeof(struct memoryblock));
-	block->allocated = 0;//TODO: ADD defragmentation
+	block->allocated = 0;
+
+	if(block->next->allocated == 0) 
+	{
+		block->size+=block->next->size+sizeof(struct memoryblock);
+		block->next->next->prev = block;
+		block->next=block->next->next;
+	}
+	if(block->prev->allocated == 0)
+	{
+		block=block->prev;
+		
+		block->size+=block->next->size+sizeof(struct memoryblock);
+		block->next->next->prev = block;
+		block->next=block->next->next;
+	}
 }
 
-void init_alloc_multiboot(u32 mmap_addr, u32 mmap_len)
+void init_alloc_multiboot(u32 mmap_addr, u32 mmap_len, u32 ramdisk_end)
 {
 	struct memoryblock *current = &headblock;
 
@@ -77,14 +93,14 @@ void init_alloc_multiboot(u32 mmap_addr, u32 mmap_len)
 		if(mmap->type == 1) //available
 		{
 			u64 mapend = mmap->addr+mmap->len;
-			if(mmap->addr<_kernel_end)
+			if(mmap->addr<ramdisk_end)
 			{ 
-				KLOGW("multiboot marked kernel loading space as available. \n");
-				if(mapend>_kernel_end) {
-					mmap->addr = alligment((u64)_kernel_end);
+				//KLOGW("multiboot marked kernel/ramdisk loading space as available. \n");
+				if(mapend>ramdisk_end) {
+					mmap->addr = alignment((u64)ramdisk_end);
 					mmap->len=mapend-mmap->addr;
 				}else{
-					KLOGW("skip region\n");
+					//KLOGW("skip region\n");
 					mmap = (struct multiboot_mmap_entry*)((u32)mmap+mmap->size+4);
 					continue;
 				}

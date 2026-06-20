@@ -12,10 +12,11 @@ build:
 	$(ASMC) $(ASMFLAGS) kernel.asm -o build/kernel_asm.o
 	ld $(LDFLAGS) -o build/kernel.bin build/kernel_asm.o build/kernel_c.o
 	cp build/kernel.bin iso/boot/kernel.bin
-	grub-mkrescue -o test.iso iso/
 
 run:
-	qemu-system-x86_64 -cdrom test.iso -m 512M
+	qemu-system-x86_64 -kernel build/kernel.bin -initrd iso/boot/initrd.img -m 1G
 
 clean:
 	rm -rf build
+	rm -f test.img
+	rm -f iso/boot/kernel.bin
