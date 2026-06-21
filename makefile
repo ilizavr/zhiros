@@ -17,8 +17,7 @@ build_grub:
 	grub-mkrescue -o test.img iso/
 
 run:
-	qemu-system-x86_64 -kernel build/kernel.bin -initrd iso/boot/initrd.img -m 1G
-
+	qemu-system-x86_64 -kernel build/kernel.bin -initrd iso/boot/initrd.img -m 1G -netdev user,id=net0 -device e1000,netdev=net0
 clean:
 	rm -rf build
 	rm -f test.img
