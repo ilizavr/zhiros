@@ -47,17 +47,42 @@ char upchr(char chr)
 	return chr;
 }
 
-char *convert_filename(char*file)
+char *convert_filename(const char *file) 
 {
-	char * ret = kalloc(11);
-	int i = 0;
-	for(;i<8&&file[i]!='.';i++)ret[i] = upchr(file[i]);
-	int j = i;
-	i++;
-	for(;j<8;j++)ret[j]=' ';
-	for(;j<11;j++,i++)ret[j]=upchr(file[i]);
-	
-	return ret;
+    char *ret = (char *)kalloc(11);
+    if (!ret) return 0;
+
+    for (int i = 0; i < 11; i++) 
+    {
+        ret[i] = ' ';
+    }
+
+    int i = 0;
+    while (file[i] != '\0' && file[i] != '.' && i < 8) 
+    {
+        ret[i] = upchr(file[i]);
+        i++;
+    }
+
+    while (file[i] != '\0' && file[i] != '.') 
+    {
+        i++;
+    }
+
+    if (file[i] == '.') 
+    {
+        i++;
+        int ext_len = 0;
+        
+        while (file[i] != '\0' && ext_len < 3) 
+        {
+            ret[8 + ext_len] = upchr(file[i]);
+            i++;
+            ext_len++;
+        }
+    }
+
+    return ret;
 }
 
 BPB *read_first_sector(struct disk* dsk)
@@ -67,6 +92,7 @@ BPB *read_first_sector(struct disk* dsk)
 
     if (buf[0x1FE] != 0x55 && buf[0x1FF] != 0xAA)
     {
+	free(buf);
         KLOGE("invalid disk. Couldn't load FAT16");
         return 0;
     }

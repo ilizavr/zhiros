@@ -7,6 +7,7 @@ struct disk
 	void (*lba_write)(u32 id, u32 lba, void* buffer, u32 blocks);
 };
 
-#define MAX_DISK_COUNT 4
+#define MAX_DISK_COUNT 16
 
 struct disk* disks[MAX_DISK_COUNT] = {0};
+

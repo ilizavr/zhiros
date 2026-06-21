@@ -223,7 +223,7 @@ struct object *hexdump_cmd(struct objectArray* args)
 
 	hexdump(buffer,file->file_size);
 
-	free(bpb);free(rootdir);free(root_buffer);free(file);free(buffer);
+	free(bpb);free(rootdir);free(root_buffer);free(buffer);
 
 	return 0;
 }

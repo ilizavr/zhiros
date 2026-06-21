@@ -63,18 +63,18 @@ void free(void *addr)
 	struct memoryblock *block = (struct memoryblock*)((u64)addr - sizeof(struct memoryblock));
 	block->allocated = 0;
 
-	if(block->next->allocated == 0) 
+	if(block->next&&block->next->allocated == 0) 
 	{
 		block->size+=block->next->size+sizeof(struct memoryblock);
-		block->next->next->prev = block;
+		if(block->next->next)block->next->next->prev = block;
 		block->next=block->next->next;
 	}
-	if(block->prev->allocated == 0)
+	if(block->prev&&block->prev->allocated == 0)
 	{
 		block=block->prev;
 		
 		block->size+=block->next->size+sizeof(struct memoryblock);
-		block->next->next->prev = block;
+		if(block->next->next)block->next->next->prev = block;
 		block->next=block->next->next;
 	}
 }
@@ -95,12 +95,10 @@ void init_alloc_multiboot(u32 mmap_addr, u32 mmap_len, u32 ramdisk_end)
 			u64 mapend = mmap->addr+mmap->len;
 			if(mmap->addr<ramdisk_end)
 			{ 
-				//KLOGW("multiboot marked kernel/ramdisk loading space as available. \n");
 				if(mapend>ramdisk_end) {
 					mmap->addr = alignment((u64)ramdisk_end);
 					mmap->len=mapend-mmap->addr;
 				}else{
-					//KLOGW("skip region\n");
 					mmap = (struct multiboot_mmap_entry*)((u32)mmap+mmap->size+4);
 					continue;
 				}
