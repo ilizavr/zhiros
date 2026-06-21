@@ -108,4 +108,35 @@ void pci_scan(void)
     }
 }
 
+u32 psi_read_dword_config(u32 bus, u32 slot, u32 func, u32 offset){
+    u32 address = (1 << 31) | (bus << 16) | (slot << 11) | (func << 8) | offset; //не трогай пж пж пж мой код
+    outl(0xCF8, address);
+    return inl(0xCFC);
+}
 
+volatile u32 bus;
+volatile u32 slot;
+volatile u32 address;
+void psi_get_base_adress(){
+ print("start scan psi e1000\n");
+     for(u32 bus_a = 0; bus_a < 256; bus_a++){
+     print("check bus\n");
+          for(u32 slot_a = 0; slot_a < 32; slot_a++){
+          print("check slot\n");
+          u32 reg0 = psi_read_dword_config(bus_a, slot_a, 0, 0x0);
+              u16 vendor_id = reg0 & 0xFFFF;
+              u16 device_id = (reg0 >> 16) & 0xFFFF;
+              if(vendor_id == 0x8086 && device_id == 0x100E){
+                  print("vendor_id: "); print_hex(vendor_id); print("\n");
+                  print("device_id: "); print_hex(device_id); print("\n");
+                  bus = bus_a; // как же меня заебал этот автобус из перевода
+                  slot = slot_a;
+              print("bus: ");    print_int(bus); print("\n");
+                  print("slot: "); print_int(slot); print("\n");
+                  address = psi_read_dword_config(bus, slot, 0, 0x10) & 0xFFFFFFF0; // я хакер мистер робот эллиот лазеры из глаз
+                  print("addres: "); print_hex(address); print("\n"); // потом напишу инициализацию драйвера
+                  return;
+              }
+          }
+     }
+}
