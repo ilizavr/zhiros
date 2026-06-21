@@ -253,7 +253,6 @@ struct object *rand(struct objectArray* args)
 {
 	struct rtc_time now = get_time();
 
-	int howseed = now.second + now.minute;
 	unsigned long seed = (now.second * 1000) + (now.minute * 60) + now.hour;
 	int usr_data = str2int(args->objs[0].data);	
 	if(usr_data <= 0){
