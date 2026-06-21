@@ -36,8 +36,8 @@ struct object *clear(struct objectArray* args)
 char * fetch_logo[]={
 	"         _.--._",
 	"    _.-.'      `.-._",
-	"  .' ./`--...--'\\   `.",
-	"  `.'.`--.._..--'   .'",
+	"  .'  /`--...--'\\   `.",
+	"  `.  `--.._..--'   .'",
 	"    `-..__    __..-'",
 	"          ````",
 };
@@ -247,6 +247,33 @@ struct object *ls(struct objectArray* args)
 
 }
 
+
+//Микита гандон рандом
+struct object *rand(struct objectArray* args)
+{
+	struct rtc_time now = get_time();
+
+	int howseed = now.second + now.minute;
+	unsigned long seed = (now.second * 1000) + (now.minute * 60) + now.hour;
+	int usr_data = str2int(args->objs[0].data);	
+	if(usr_data <= 0){
+		KLOGE("Input must be greater than 0\n");
+		return 0;
+	}
+
+	int random = (seed * 1103515245) % usr_data;
+	print_int(random);
+	print("\n");
+	
+	return 0;
+
+}
+
+//Эгор автобус хакер
+struct object *netadapter(struct objectArray* args){
+  psi_get_base_adress();
+}
+
 void main(){
 	find_disk();
 	
@@ -262,6 +289,8 @@ void main(){
 	register_function("dmpdsk",dump_disk);
 	register_function("clear",clear);
 	register_function("help",help);
+	register_function("rand", rand);
+	register_function("netadapter", netadapter);
 
 	KLOGI("system functions registered\n");	
 
