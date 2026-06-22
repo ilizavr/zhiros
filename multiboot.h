@@ -22,7 +22,10 @@ __attribute__((packed)) struct multiboot_mod_list
         u32 pad;
 };
 
-void _multiboot_entry(struct multiboot_info* mbi,u32 magic){
+
+void _multiboot_entry(struct multiboot_info* mbi,u32 magic,u8 codesegment){
+	code_segment = codesegment;
+
 	if(magic != 0x2BADB002) KLOGF("not multiboot magic");
 	if((mbi->flags&(1<<6)) == 0) KLOGF("mmap not given by multiboot");
 	if(mbi->mods_count<1) KLOGF("multiboot dont give initial ramdisk");

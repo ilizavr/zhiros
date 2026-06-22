@@ -36,11 +36,15 @@ const char keyboard_map[128] =
     0,                      
 };
 
+u8 last_pressed_key = 0;
+
 u8 get_pressed_keycode()
 {
-	//TODO: interrupts
-	if((port_byte_in(0x64)&1) == 0)return 0;//key not pressed
-	return port_byte_in(0x60);
+	asm volatile("hlt");
+	return last_pressed_key;
+	
+	//if((port_byte_in(0x64)&1) == 0)return 0;//key not pressed
+	//return port_byte_in(0x60);
 }
 
 char getch()
@@ -77,4 +81,16 @@ void input(char * string, int maxlen)
 		}
 	}
 	string[i] = 0;
+}
+void keyboard_handler()
+{
+	last_pressed_key = port_byte_in(0x60);
+	pic_eoi();
+}
+
+extern void keyboard_isr_handler();
+
+void init_keyboard_interrupt()
+{
+	set_idt_gate(33, (u32)keyboard_isr_handler);
 }

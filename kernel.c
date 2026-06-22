@@ -2,6 +2,7 @@
 #include "ports.h"
 #include "print.h"
 #include "allocator.h"
+#include "interrupt.h"
 #include "keyboard.h"
 #include "function_manager.h"
 #include "shell.h"
@@ -12,7 +13,7 @@
 #include "neuro_ide.h"
 #include "pci.h"
 #include "fat16.h"
-
+#include "rand.h"
 
 struct object *echo(struct objectArray* args)
 {
@@ -36,8 +37,8 @@ struct object *clear(struct objectArray* args)
 char * fetch_logo[]={
 	"         _.--._",
 	"    _.-.'      `.-._",
-	"  .'  /`--...--'\\   `.",
-	"  `.  `--.._..--'   .'",
+	"  .' ./`--...--'\\   `.",
+	"  `.'.`--.._..--'   .'",
 	"    `-..__    __..-'",
 	"          ````",
 };
@@ -246,21 +247,18 @@ struct object *ls(struct objectArray* args)
         return 0;
 
 }
-
-
-//Микита гандон рандом
-struct object *rand(struct objectArray* args)
+struct object *random(struct objectArray* args)
 {
-	struct rtc_time now = get_time();
-
-	unsigned long seed = (now.second * 1000) + (now.minute * 60) + now.hour;
-	int usr_data = str2int(args->objs[0].data);	
-	if(usr_data <= 0){
-		KLOGE("Input must be greater than 0\n");
+	if(args->count<2)
+	{
+		KLOGE("use random <min> <max>\n");
 		return 0;
 	}
 
-	int random = (seed * 1103515245) % usr_data;
+	u32 min = str2int(args->objs[0].data);	
+	u32 max = str2int(args->objs[1].data);	
+
+	u32 random = min+ (rand() % (max-min+1));
 	print_int(random);
 	print("\n");
 	
@@ -268,14 +266,18 @@ struct object *rand(struct objectArray* args)
 
 }
 
-//Эгор автобус хакер
 struct object *netadapter(struct objectArray* args){
   psi_get_base_adress();
 }
 
 void main(){
+	pic_remap();
+	init_idt();
+	init_keyboard_interrupt();
+	asm volatile ("sti");
+	KLOGI("interrupt enable\n");	
+
 	find_disk();
-	
 	
 	register_function("echo",echo);
 	register_function("cat",cat);
@@ -288,8 +290,9 @@ void main(){
 	register_function("dmpdsk",dump_disk);
 	register_function("clear",clear);
 	register_function("help",help);
-	register_function("rand", rand);
 	register_function("netadapter", netadapter);
+	register_function("random", random);
+
 
 	KLOGI("system functions registered\n");	
 
