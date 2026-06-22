@@ -1,5 +1,7 @@
 #include "int_types.h"
+u32 ticks = 0;
 #include "ports.h"
+#include "serial.h"
 #include "print.h"
 #include "allocator.h"
 #include "interrupt.h"
@@ -14,6 +16,7 @@
 #include "pci.h"
 #include "fat16.h"
 #include "rand.h"
+
 
 struct object *echo(struct objectArray* args)
 {
@@ -268,6 +271,35 @@ struct object *random(struct objectArray* args)
 
 struct object *netadapter(struct objectArray* args){
   psi_get_base_adress();
+return 0;
+}
+
+struct object *dump_mem(struct objectArray*args)
+{
+	if(args->count<2){
+                KLOGE("use dmpmem <start> <end>\n");
+                return 0;
+        }
+        u32 start = str2int(args->objs[0].data);
+        u32 end = str2int(args->objs[1].data);
+
+        hexdump((void*)start,end-start);
+        return 0;
+}
+
+struct object* uptime(struct objectArray *args)
+{
+	u32 all = ticks/1000;
+	u32 sec = all%60;
+	all/=60;
+	u32 min = all%60;
+	all/=60;
+	u32 hour = all;
+
+	if(hour>0){print_int(hour);print("h ");}
+	if(min>0){print_int(min);print("m ");}
+	print_int(sec);print("s\n");
+	return 0;
 }
 
 void main(){
@@ -279,7 +311,7 @@ void main(){
 	KLOGI("interrupt enable\n");	
 
 	find_disk();
-
+	
 	register_function("echo",echo);
 	register_function("cat",cat);
 	register_function("ls",ls);
@@ -287,12 +319,15 @@ void main(){
 	register_function("lspci",lspci);
 	register_function("screenfetch",screenfetch);
 	register_function("date",date);
+	register_function("uptime",uptime);
 	register_function("lsblk",lsblk);
 	register_function("dmpdsk",dump_disk);
+	register_function("dmpmem",dump_mem);
 	register_function("clear",clear);
-	register_function("help",help);
 	register_function("netadapter", netadapter);
 	register_function("random", random);
+	register_function("help",help);
+	
 
 
 	KLOGI("system functions registered\n");	

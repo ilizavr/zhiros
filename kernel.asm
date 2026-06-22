@@ -15,6 +15,7 @@ global timer_isr_handler
 extern _multiboot_entry
 extern keyboard_handler
 extern timerticks
+extern ticks
 extern pic_eoi
 
 _start:
@@ -28,7 +29,6 @@ _start:
 
 	jmp $
 
-
 keyboard_isr_handler:
 	pusha
 	
@@ -40,6 +40,7 @@ _none_interrupt:
 timer_isr_handler:
 	pusha
 	inc dword [timerticks]
+	inc dword [ticks] ; for random
 	call pic_eoi
 	popa
 	iret

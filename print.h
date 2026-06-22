@@ -74,13 +74,42 @@ void memset_short(short *dst, short sym, int size)
     }
 }
 
-u32 str2int(char *str)
+bool is_dec_number(char *str)
 {
+	while(*str){
+		if(*str>'9'||*str<'0') return false;
+		str++;
+	}
+	return true;
+}
+bool is_hex_number(char *str)
+{
+	if(str[0] != '0') return false;
+	if(str[1] != 'x') return false;
+	str+=2;
+	while(*str){
+		if((*str>'9'||*str<'0')&&(*str<'a'||*str>'z'))return false;
+		str++;
+	}
+	return true;
+}
+
+u32 str2int(char *str)
+{	
 	int ret = 0;
 	int len = strlen(str);
-	for(int i = 0;i<len;i++)
-	{
-		ret=ret*10+str[i]-'0';
+	
+	if(is_dec_number(str)){
+		for(int i = 0;i<len;i++)
+		{
+			ret=ret*10+str[i]-'0';
+		}
+	}else if(is_hex_number(str)){
+		for(int i = 2;i<len;i++){
+			char sym = str[i];
+			if(sym<'9')ret=ret*16+str[i]-'0';
+			else ret = ret*16+str[i]-'a'+0xA;
+		}
 	}
 
 	return ret;
@@ -115,6 +144,7 @@ void roll_up(short *current_pos)
 }
 void print_color(char * string, char color)
 {
+	serial_print(string);
 	short current_position = __get_cursor_offset();
 
 	for(int i = 0;;i++,current_position++)
@@ -134,6 +164,8 @@ void print_color(char * string, char color)
 
 void putchar(char chr)
 {
+	serial_putc(chr);	
+
 	short current_position = __get_cursor_offset();
 	
 	int x = current_position%WIDTH;

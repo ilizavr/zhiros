@@ -17,7 +17,7 @@ build_grub:
 	grub-mkrescue -o test.img iso/
 
 run:
-	qemu-system-x86_64 -kernel build/kernel.bin -initrd iso/boot/initrd.img -m 1G
+	qemu-system-x86_64 -serial stdio -kernel build/kernel.bin -initrd iso/boot/initrd.img -m 1G
 
 clean:
 	rm -rf build
