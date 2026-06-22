@@ -1,6 +1,7 @@
 это жирОС
 
 
+
 как запустить:
 
 1.создать рамдиск `dd if=/dev/zero of=iso/boot/initrd.img bs=10M count=1`
