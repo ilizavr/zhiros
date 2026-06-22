@@ -61,7 +61,7 @@ extern void timer_isr_handler();
 
 void init_timer()
 {
-	u32 divisor = 1193182/2000;
+	u32 divisor = 1193182/100;
 	
 	outb(0x43, 0x36);
 	

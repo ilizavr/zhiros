@@ -39,8 +39,8 @@ _none_interrupt:
 	iret
 timer_isr_handler:
 	pusha
-	inc dword [timerticks]
-	inc dword [ticks] ; for random
+	add dword [timerticks],10
+	add dword [ticks],10
 	call pic_eoi
 	popa
 	iret

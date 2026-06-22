@@ -268,12 +268,6 @@ struct object *random(struct objectArray* args)
 	return 0;
 
 }
-
-struct object *netadapter(struct objectArray* args){
-  psi_get_base_adress();
-return 0;
-}
-
 struct object *dump_mem(struct objectArray*args)
 {
 	if(args->count<2){
@@ -307,11 +301,13 @@ void main(){
 	init_idt();
 	init_keyboard_interrupt();
 	init_timer();
+	init_cpu_exception();
+	
 	asm volatile ("sti");
 	KLOGI("interrupt enable\n");	
 
-	find_disk();
-	
+	find_pci_devices();
+
 	register_function("echo",echo);
 	register_function("cat",cat);
 	register_function("ls",ls);
@@ -324,7 +320,6 @@ void main(){
 	register_function("dmpdsk",dump_disk);
 	register_function("dmpmem",dump_mem);
 	register_function("clear",clear);
-	register_function("netadapter", netadapter);
 	register_function("random", random);
 	register_function("help",help);
 	

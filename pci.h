@@ -11,6 +11,18 @@ u32 pci_read_dword(u8 bus, u8 slot, u8 func, u8 offset)
 	port_dword_out(0xCF8, address);
 	return port_dword_in(0xCFC);
 }
+volatile u32 addressE1000;
+
+void check_e1000(u32 bus, u32 slot, u32 func){
+  u16 vendor_id = pci_read_word(bus, slot, func, 0x0);
+  u16 device_id = pci_read_word(bus, slot, func, 0x02);
+  if(vendor_id == 0x8086 && device_id == 0x100E){ 
+addressE1000 = pci_read_dword(bus, slot, func, 0x10) & 0xFFFFFFF0;
+  print("addressE1000: 0x"); 
+print_hex(addressE1000); 
+print("\n");
+  }
+}
 
 void pci_check_disk(u8 bus, u8 slot, u8 func)
 {
@@ -40,7 +52,7 @@ void pci_check_disk(u8 bus, u8 slot, u8 func)
 
 }
 
-void find_disk()
+void find_pci_devices()
 {	
     for (u32 bus = 0; bus < 256; bus++)
     {
@@ -50,6 +62,7 @@ void find_disk()
             if (vendor_id == 0xFFFF) continue; 
 
             pci_check_disk(bus, slot, 0);
+            check_e1000(bus, slot, 0);
 	    
 
             u16 header_type = pci_read_word(bus, slot, 0, 0x0E);
@@ -58,6 +71,7 @@ void find_disk()
                 for (u8 func = 1; func < 8; func++)
                 {
                     pci_check_disk(bus, slot, func);
+            	    check_e1000(bus, slot, func);
                 }
             }
         }
@@ -108,29 +122,4 @@ void pci_scan(void)
     }
 }
 
-volatile u32 bus_e1000;
-volatile u32 slot_e1000;
-volatile u32 address_e1000;
-void psi_get_base_adress(){
- print("start scan psi e1000\n");
-     for(u32 bus_a = 0; bus_a < 256; bus_a++){
-     print("check bus\n");
-          for(u32 slot_a = 0; slot_a < 32; slot_a++){
-          print("check slot\n");
-          u32 reg0 = pci_read_dword(bus_a, slot_a, 0, 0x0);
-              u16 vendor_id = reg0 & 0xFFFF;
-              u16 device_id = (reg0 >> 16) & 0xFFFF;
-              if(vendor_id == 0x8086 && device_id == 0x100E){
-                  print("vendor_id: "); print_hex(vendor_id); print("\n");
-                  print("device_id: "); print_hex(device_id); print("\n");
-                  bus_e1000 = bus_a; 
-                  slot_e1000 = slot_a;
-              print("bus: ");    print_int(bus_e1000); print("\n");
-                  print("slot: "); print_int(slot_e1000); print("\n");
-                  address_e1000 = pci_read_dword(bus_e1000, slot_e1000, 0, 0x10) & 0xFFFFFFF0; 
-                  print("addres: "); print_hex(address_e1000); print("\n"); // потом напишу инициализацию драйвера
-                  return;
-              }
-          }
-     }
-}
+

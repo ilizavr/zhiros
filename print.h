@@ -205,7 +205,8 @@ void KLOGF(char *string)
 {
 	print_color("[FATAL]",0b1100);
 	print(string);
-	while(true){}
+	asm volatile("cli");
+	asm volatile("hlt");
 }
 void print_hex(u32 num)
 {
