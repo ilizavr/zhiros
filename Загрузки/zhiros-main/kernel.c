@@ -14,7 +14,7 @@
 #include "time.h"
 
 struct object *echo(struct objectArray *args)
- {
+{
     for (int i = 0; i < args->count; i++)
     {
         if (args->objs[i].type == OBJECT_STRING)
@@ -33,10 +33,15 @@ struct object *clear(struct objectArray *args)
     return 0;
 }
 
-char *fetch_logo[] = {
-    "         _.--._",        "    _.-.'      `.-._", "  .' ./`--...--'\\   `.",
-    "  `.'.`--.._..--'   .'", "    `-..__    __..-'", "          ````",
+char * fetch_logo[]={
+	"         _.--._",
+	"    _.-.'      `.-._",
+	"  .' ./`--...--'\\   `.",
+	"  `.'.`--.._..--'   .'",
+	"    `-..__    __..-'",
+	"          ````",
 };
+
 
 struct object *screenfetch(struct objectArray *args)
 {
@@ -244,13 +249,21 @@ struct object *write(struct objectArray *args)
         }
     }
 
-    u8 *hell = (u8 *)"hello world";
+    int len = strlen(args->objs[2]);
 
-    write_file(dsk, entry, bpb, rootdir, hell, 11);
+    if (len == 0)
+    {
+        KLOGE("no data!");
+        return 0;
+    }
+    u8 *d = (u8 *)kalloc(sizeof(u8) * len);
+
+    write_file(dsk, entry, bpb, rootdir, d, len);
 
     free(bpb);
     free(rootdir);
     free(root_buf);
+    free(d);
 
     return 0;
 }
@@ -297,7 +310,7 @@ void main()
 
     register_function("echo", echo);
     register_function("cat", cat);
-    register_function("write",write);
+    register_function("write", write);
     register_function("hexdump", hexdump_cmd);
     register_function("lspci", lspci);
     register_function("screenfetch", screenfetch);
