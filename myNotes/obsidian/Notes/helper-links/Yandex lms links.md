@@ -1,5 +1,0 @@
-- https://lms.yandex.ru/courses/1478/groups/50387/lessons/11704/tasks/69777/solutions/25135008 - it's link for problem of last assigment(final project)
-- https://lms.yandex.ru/courses/1478/groups/50387/lessons/10482/problems/11447 - it's link for test of agile metodology
-- https://lms.yandex.ru/courses/1478/groups/50387/lessons/10488 - it's link for the main screen of "planning an architecture of the project" theme
-- https://lms.yandex.ru/courses/1478/groups/50387/lessons/10499 - it's link for the main screen of "scaling our microservice architecture" theme 
-- https://lms.yandex.ru/courses/1478/groups/50387/lessons/10497 - it's link for the main screen of "entrypoint to Nginx learning use it to scaling" theme

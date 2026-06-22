@@ -1,5 +1,0 @@
-files.txt
-output.txt
-конспект по Present simple.md
-конспект по глаголу to be.md
-\n #конспект
