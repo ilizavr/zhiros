@@ -31,7 +31,7 @@ void *kalloc(u32 size)
 		{
 			if((current->size - size) > 64)
 			{
-				struct memoryblock* newblock = (struct memoryblock*)((u64)current+sizeof(struct memoryblock)+size);
+				struct memoryblock* newblock = (struct memoryblock*)((u32)current+sizeof(struct memoryblock)+size);
 				newblock->next = current->next;
 				current->next=newblock;
 				if(newblock->next) newblock->next->prev = newblock;
@@ -41,7 +41,7 @@ void *kalloc(u32 size)
 				newblock->allocated = 0;
 			}
 			current->allocated = 1;
-			return (void*)((u64)current+sizeof(struct memoryblock));
+			return (void*)((u32)current+sizeof(struct memoryblock));
 		}
 		current = current->next;
 	}
@@ -60,7 +60,7 @@ char * strdup(char *s)
 void free(void *addr)
 {
 	if(!addr) return;
-	struct memoryblock *block = (struct memoryblock*)((u64)addr - sizeof(struct memoryblock));
+	struct memoryblock *block = (struct memoryblock*)((u32)addr - sizeof(struct memoryblock));
 	block->allocated = 0;
 
 	if(block->next&&block->next->allocated == 0) 
@@ -96,7 +96,7 @@ void init_alloc_multiboot(u32 mmap_addr, u32 mmap_len, u32 ramdisk_end)
 			if(mmap->addr<ramdisk_end)
 			{ 
 				if(mapend>ramdisk_end) {
-					mmap->addr = alignment((u64)ramdisk_end);
+					mmap->addr = alignment((u32)ramdisk_end);
 					mmap->len=mapend-mmap->addr;
 				}else{
 					mmap = (struct multiboot_mmap_entry*)((u32)mmap+mmap->size+4);

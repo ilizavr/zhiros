@@ -56,3 +56,27 @@ struct rtc_time get_time()
 
 	return ret;
 }
+
+extern void timer_isr_handler();
+
+void init_timer()
+{
+	u32 divisor = 1193182/2000;
+	
+	outb(0x43, 0x36);
+	
+	outb(0x40, divisor);
+	outb(0x40, divisor>>8);
+	
+	set_idt_gate(0x20,(u32)timer_isr_handler);
+}
+u32 timerticks = 0;
+
+void sleep(u32 milisecs)
+{
+	timerticks = 0;
+	while(timerticks<milisecs)
+	{
+		asm volatile("hlt");
+	}
+}

@@ -10,9 +10,12 @@ section .text
 global _start
 global keyboard_isr_handler
 global _none_interrupt
+global timer_isr_handler
 
 extern _multiboot_entry
 extern keyboard_handler
+extern timerticks
+extern pic_eoi
 
 _start:
 	cli
@@ -34,6 +37,13 @@ keyboard_isr_handler:
 	popa
 _none_interrupt:
 	iret
+timer_isr_handler:
+	pusha
+	inc dword [timerticks]
+	call pic_eoi
+	popa
+	iret
+
 section .bss
 resb 8192
 stack:

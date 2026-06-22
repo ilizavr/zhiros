@@ -274,11 +274,12 @@ void main(){
 	pic_remap();
 	init_idt();
 	init_keyboard_interrupt();
+	init_timer();
 	asm volatile ("sti");
 	KLOGI("interrupt enable\n");	
 
 	find_disk();
-	
+
 	register_function("echo",echo);
 	register_function("cat",cat);
 	register_function("ls",ls);
