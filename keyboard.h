@@ -41,7 +41,9 @@ u8 last_pressed_key = 0;
 u8 get_pressed_keycode()
 {
 	asm volatile("hlt");
-	return last_pressed_key;
+	u8 save = last_pressed_key;
+	last_pressed_key = 0;
+	return save;
 	//if((port_byte_in(0x64)&1) == 0)return 0;//key not pressed
 	//return port_byte_in(0x60);
 }
