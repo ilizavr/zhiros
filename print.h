@@ -58,6 +58,44 @@ int memcmp(const void *s1, const void *s2, unsigned int n)
     return 0;
 }
 
+char* strcat(char* s1,char* s2) {
+int len1 = strlen(s1);
+int len2 = strlen(s2);
+
+char* new_str = (char*)kalloc(len1 + len2 + 1);
+
+int i = 0;
+int j = 0;
+
+while(i < len1){
+new_str[i] = s1[i];
+++i;
+}
+
+
+++i;
+
+while(j < len2){
+new_str[i] = s2[j];
+++j;
+++i;
+}
+
+++i;
+
+new_str[i] = '\0';
+
+return new_str;
+}
+
+void assert(bool expression,char* msg){
+if(!expression){	
+KLOGF("assertion failed because of ");
+print(msg);
+print('\n');
+}
+}
+
 void memmove_short(short *dst, short *src, int size)
 {
     for (int i = 0; i < size; i++)
