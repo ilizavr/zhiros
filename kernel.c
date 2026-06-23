@@ -332,10 +332,23 @@ struct object *wf(struct objectArray* args)
 	DirEntry *file = find_file(root_buffer,bpb,args->objs[1].data);
 	if(!file) 
 	{
-		KLOGE("file not found\n");
-		free(bpb);free(rootdir);free(root_buffer);
+
+        file = create_file(root_buffer,bpb,args->objs[1].data);
+	if(!file && file != LONG_NAME)
+	{
+		KLOGE("file not found and cant create of it\n");
+
+		free(bpb);free(rootdir);free(root_buffer); free(file);
 	
 		return 0;
+	} else if(file == LONG_NAME) 
+	{
+         KLOGE("the file name is too long");
+
+        free(bpb);free(rootdir);free(root_buffer); free(file);
+	return 0;
+	}
+
 	}
 	write_file(dsk,file,bpb,rootdir,args->objs[2].data,strlen(args->objs[2].data));
 

@@ -1,3 +1,5 @@
+#define LONG_NAME (1 << 30)
+
 typedef struct
 {
     u8 jump[3];
@@ -266,7 +268,7 @@ void write_fat(struct disk *dsk, u32 cluster, u16 next, BPB *bpb, RootDir *root)
 DirEntry *create_file(u8 *root_buffer, BPB *bpb, char *name)
 {
     if (strlen(name) > 11)
-        return 0;
+        return (DirEntry*)LONG_NAME;
 
 name=convert_filename(name);
 
