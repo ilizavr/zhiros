@@ -195,6 +195,7 @@ struct object *cat(struct objectArray* args)
 		return 0;
 	}
 	void *buffer = kalloc(get_file_size(file,bpb));
+	*(char*)buffer = 0;
 	load_file(dsk,file,bpb,rootdir,buffer);
 
 	print(buffer);
@@ -296,6 +297,55 @@ struct object* uptime(struct objectArray *args)
 	return 0;
 }
 
+struct object* touch(struct objectArray *args)
+{
+	if(args->count<2)
+	{
+		KLOGE("use touch <diskletter> <filename>");
+		return 0;
+	}
+
+	int diskid = *(char*)args->objs[0].data-'a';
+	struct disk *dsk =disks[diskid];
+	BPB* bpb = read_first_sector(dsk);
+	RootDir* rootdir=calculateRootDir(bpb);
+	u8* root_buffer = readRootDir(dsk,rootdir,bpb);
+	
+	create_file(root_buffer,bpb,args->objs[1].data);
+
+	writeRootDir(dsk,rootdir,bpb,root_buffer);
+	
+	free(bpb);free(rootdir);free(root_buffer);
+	return 0;
+}
+struct object *wf(struct objectArray* args)
+{
+	if(args->count <3){
+		KLOGE("use wf <diskletter> <file name> <data>\n");
+		return 0;
+	}
+	int diskid = *(char*)args->objs[0].data-'a';
+	struct disk *dsk =disks[diskid];
+	BPB* bpb = read_first_sector(dsk);
+	RootDir* rootdir=calculateRootDir(bpb);
+	u8* root_buffer = readRootDir(dsk,rootdir,bpb);
+	DirEntry *file = find_file(root_buffer,bpb,args->objs[1].data);
+	if(!file) 
+	{
+		KLOGE("file not found\n");
+		free(bpb);free(rootdir);free(root_buffer);
+	
+		return 0;
+	}
+	write_file(dsk,file,bpb,rootdir,args->objs[2].data,strlen(args->objs[2].data));
+
+	writeRootDir(dsk,rootdir,bpb,root_buffer);
+	free(bpb);free(rootdir);free(root_buffer);free(file);
+
+	return 0;
+}
+
+
 void main(){
 	pic_remap();
 	init_idt();
@@ -309,7 +359,9 @@ void main(){
 	find_pci_devices();
 
 	register_function("echo",echo);
+	register_function("wf",wf);
 	register_function("cat",cat);
+	register_function("touch",touch);
 	register_function("ls",ls);
 	register_function("hexdump",hexdump_cmd);
 	register_function("lspci",lspci);
