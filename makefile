@@ -6,7 +6,7 @@ ASMFLAGS = -f elf32
 LDFLAGS = -m elf_i386 -T linker.ld 
 
 create_rd:
-	sudo dd if=/dev/zero   of=iso/boot/initrd.img   bs=1M count=10 
+	dd if=/dev/zero   of=iso/boot/initrd.img   bs=1M count=10 
 	mkfs.fat -F16 iso/boot/initrd.img
 build:
 	mkdir build
