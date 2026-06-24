@@ -4,10 +4,8 @@
 
 как запустить:
 
-1.создать рамдиск `dd if=/dev/zero of=iso/boot/initrd.img bs=10M count=1`
+1.создать рамдиск `make create_rd`
 
-2.форматировать его в fat16 `mkfs.fat -F16 iso/boot/initrd.img`
+2.скомпилировать и запустить в qemu. `make clean build build_grub run_grub`
 
-3.1.скомпилировать запустить ОС в эмуляторе. `make clean build run`
-
-3.2.собрать образ для реального железа `make clean build build_grub`
+ps.если не работает прошлая команда `make clean build run_qemu` но так не работает framebuffer
