@@ -1,14 +1,17 @@
+short *video = (short*)0xB8000;
+
 #include "int_types.h"
 u32 ticks = 0;
 #include "ports.h"
 #include "serial.h"
+#include "fb.h"
 #include "print.h"
 #include "allocator.h"
 #include "interrupt.h"
+#include "cpu.h"
 #include "keyboard.h"
 #include "function_manager.h"
 #include "shell.h"
-#include "cpu.h"
 #include "time.h"
 #include "disk.h"
 #include "ramdisk.h"
@@ -16,7 +19,6 @@ u32 ticks = 0;
 #include "pci.h"
 #include "fat16.h"
 #include "rand.h"
-
 
 struct object *echo(struct objectArray* args)
 {
@@ -311,7 +313,21 @@ struct object* touch(struct objectArray *args)
 	RootDir* rootdir=calculateRootDir(bpb);
 	u8* root_buffer = readRootDir(dsk,rootdir,bpb);
 	
-	create_file(root_buffer,bpb,args->objs[1].data);
+	file = create_file(root_buffer,bpb,args->objs[1].data);
+	if(!file && file != LONG_NAME)
+	{
+		KLOGE("cant create file\n");
+
+		free(bpb);free(rootdir);free(root_buffer); free(file);
+	
+		return 0;
+	} else if(file == LONG_NAME) 
+	{
+         KLOGE("the file name is too long");
+
+        free(bpb);free(rootdir);free(root_buffer); free(file);
+	return 0;
+	}
 
 	writeRootDir(dsk,rootdir,bpb,root_buffer);
 	
@@ -357,7 +373,6 @@ struct object *wf(struct objectArray* args)
 
 	return 0;
 }
-
 
 void main(){
 	pic_remap();

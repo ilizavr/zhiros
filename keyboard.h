@@ -1,8 +1,8 @@
 const char keyboard_map[128] =
 {
-    0,   27, '1', '2', '3', '4', '5', '6', '7', '8', /* 9 */
+    0,   0, '1', '2', '3', '4', '5', '6', '7', '8', /* 9 */
   '9', '0', '-', '=', '\b', /* Backspace */
-  '\t',                     /* Tab */
+  ' ',                     /* Tab */
   'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 
   '\n',                     /* Enter (Скан-код 0x1C) */
     0,                      /* Control */
@@ -10,7 +10,7 @@ const char keyboard_map[128] =
     0,                      /* Left Shift */
  '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',   
     0,                      /* Right Shift */
-  '*',
+  0,
     0,                      /* Alt */
   ' ',                      /* Space */
     0,                      /* Caps lock */
@@ -18,15 +18,52 @@ const char keyboard_map[128] =
     0,                      /* Num lock */
     0,                      /* Scroll lock */
     0,                      /* Home key */
-    0,                      /* Up Arrow */
+    24,                      /* Up Arrow */
     0,                      /* Page Up */
   '-',
-    0,                      /* Left Arrow */
-    0,
-    0,                      /* Right Arrow */
+    27, /* Left Arrow */                     
+   0, 
+    26,                      /* Right Arrow */
   '+',
     0,                      /* End key */
-    0,                      /* Down Arrow */
+    25,                      /* Down Arrow */
+    0,                      /* Page Down */
+    0,                      /* Insert Key */
+    0,                      /* Delete Key */
+    0, 0, 0,
+    0,                      /* F11 Key */
+    0,                      /* F12 Key */
+    0,                      
+};
+const char keyboard_map_shift[128] =
+{
+    0,   0, '!', '@', '#', '$', '%', '^', '&', '*',
+  '(', ')', '_', '+', '\b', 
+  ' ',
+  'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 
+  '\n',                    
+    0,                      /* Control */
+  'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '\"', '~', 
+    0,                      /* Left Shift */
+ '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?',   
+    0,                      /* Right Shift */
+  0,
+    0,                      /* Alt */
+  ' ',                      /* Space */
+    0,                      /* Caps lock */
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   /* F1-F10 keys */
+    0,                      /* Num lock */
+    0,                      /* Scroll lock */
+    0,                      /* Home key */
+    24,                      /* Up Arrow */
+    0,                      /* Page Up */
+  0,
+    27, /* Left Arrow */                     
+   0, 
+    26,                      /* Right Arrow */
+  0,
+    0,                      /* End key */
+    25,                      /* Down Arrow */
     0,                      /* Page Down */
     0,                      /* Insert Key */
     0,                      /* Delete Key */
@@ -36,7 +73,10 @@ const char keyboard_map[128] =
     0,                      
 };
 
+
 u8 last_pressed_key = 0;
+bool shift_pressed = 0;
+bool ctrl_pressed = 0;
 
 u8 get_pressed_keycode()
 {
@@ -52,6 +92,7 @@ char getch()
 	while(!key || key&0x80) key = get_pressed_keycode();
 
 	char chr = keyboard_map[key];
+	if(shift_pressed) chr = keyboard_map_shift[key];
 	return chr;
 }
 
@@ -81,10 +122,21 @@ void input(char * string, int maxlen)
 	}
 	string[i] = 0;
 }
+void start_shell();
 void keyboard_handler()
 {
 	last_pressed_key = port_byte_in(0x60);
+	if(last_pressed_key==0x2A)shift_pressed=true;
+	if(last_pressed_key==0xAA)shift_pressed=false;
+	if(last_pressed_key==0x1D)ctrl_pressed=true;
+	if(last_pressed_key==0x9D)ctrl_pressed=false;
+	
 	pic_eoi();
+
+	/*if(ctrl_pressed&&keyboard_map[last_pressed_key]=='c') {
+		print("^C\n");
+		//kernel_panic();
+	}*/
 }
 
 extern void keyboard_isr_handler();

@@ -1,7 +1,3 @@
-short *video = (short*)0xB8000;
-
-const char WIDTH = 80, HEIGHT = 25;
-
 #define VGA_CTRL_REGISTER 0x3d4
 #define VGA_DATA_REGISTER 0x3d5
 #define VGA_OFFSET_LOW 0x0f
@@ -135,6 +131,7 @@ void cls()
 {
 	__set_cursor_offset(0);
 	memset_short(video,' '|0b0111<<8,WIDTH*HEIGHT);
+	vga2fb();
 }
 void roll_up(short *current_pos)
 {
@@ -160,6 +157,7 @@ void print_color(char * string, char color)
 
 	}
 	__set_cursor_offset(current_position);
+vga2fb();
 }
 
 void putchar(char chr)
@@ -179,6 +177,7 @@ void putchar(char chr)
 
         __set_cursor_offset(current_position);
 
+vga2fb();
 }
 
 void print(char * string)

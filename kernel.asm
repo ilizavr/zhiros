@@ -1,12 +1,25 @@
 bits 32
 
-section .text
+MULTIBOOT_VIDEO_MODE equ 4
 
+section .multiboot
 	align 4
 	dd 0x1BADB002
-	dd 0x00
-	dd -(0x1BADB002+0x00)
+	dd MULTIBOOT_VIDEO_MODE
+	dd -(0x1BADB002+MULTIBOOT_VIDEO_MODE)
+	
+	;jmp _start
+	dd 0
+	dd 0
+	dd 0
+	dd 0
+	dd 0
+	dd 0
+	dd 640
+	dd 400
+	dd 0
 
+section .text
 global _start
 global keyboard_isr_handler
 global _none_interrupt
