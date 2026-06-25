@@ -19,6 +19,7 @@ u32 ticks = 0;
 #include "pci.h"
 #include "fat16.h"
 #include "rand.h"
+#include "process.h"
 
 struct object *echo(struct objectArray* args)
 {
@@ -313,7 +314,7 @@ struct object* touch(struct objectArray *args)
 	RootDir* rootdir=calculateRootDir(bpb);
 	u8* root_buffer = readRootDir(dsk,rootdir,bpb);
 	
-	file = create_file(root_buffer,bpb,args->objs[1].data);
+	DirEntry* file = create_file(root_buffer,bpb,args->objs[1].data);
 	if(!file && file != LONG_NAME)
 	{
 		KLOGE("cant create file\n");
@@ -374,6 +375,19 @@ struct object *wf(struct objectArray* args)
 	return 0;
 }
 
+struct object *ps(struct objectArray *args)
+{
+	print("PID | name\n");
+	for(int i = 0;i<MAX_TASK_COUNT;i++)
+	{
+		if(!tasks[i])continue;
+		print_int(i);
+		print("     ");
+		print(tasks[i]->name);
+		print("\n");
+	}	
+}
+
 void main(){
 	pic_remap();
 	init_idt();
@@ -381,12 +395,10 @@ void main(){
 	init_timer();
 	init_cpu_exception();
 	
-	asm volatile ("sti");
-	KLOGI("interrupt enable\n");	
-
 	find_pci_devices();
 
 	register_function("echo",echo);
+	register_function("ps",ps);
 	register_function("wf",wf);
 	register_function("cat",cat);
 	register_function("touch",touch);
@@ -403,11 +415,11 @@ void main(){
 	register_function("random", random);
 	register_function("help",help);
 	
-
-
 	KLOGI("system functions registered\n");	
+	
+	create_process((u32)start_shell,"shell");
 
-	start_shell();
+	asm volatile ("sti");
 }
 
 #include "multiboot.h"

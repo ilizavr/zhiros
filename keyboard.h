@@ -122,21 +122,32 @@ void input(char * string, int maxlen)
 	}
 	string[i] = 0;
 }
-void start_shell();
+//void start_shell();
+//void kill(int);
+//void create_process(u32,char*);
 void keyboard_handler()
 {
 	last_pressed_key = port_byte_in(0x60);
 	if(last_pressed_key==0x2A)shift_pressed=true;
 	if(last_pressed_key==0xAA)shift_pressed=false;
 	if(last_pressed_key==0x1D)ctrl_pressed=true;
-	if(last_pressed_key==0x9D)ctrl_pressed=false;
+	if(last_pressed_key==0x9D)ctrl_pressed=false;	
 	
-	pic_eoi();
 
 	/*if(ctrl_pressed&&keyboard_map[last_pressed_key]=='c') {
 		print("^C\n");
-		//kernel_panic();
+		asm volatile("cli");
+		kill(0);
+		create_process((u32)start_shell);
+		last_pressed_key=0;
+		asm volatile("sti");
+	}*/	
+
+	/*if(ctrl_pressed&&keyboard_map[last_pressed_key]>='0'&&keyboard_map[last_pressed_key]<='9') {
+		current_task_fb = tasks_fb[keyboard_map[last_pressed_key]-'0'];
+
 	}*/
+	pic_eoi();
 }
 
 extern void keyboard_isr_handler();
