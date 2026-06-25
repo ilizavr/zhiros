@@ -49,7 +49,8 @@ void fbdev_init(u64 addr, u32 width, u32 height, u32 pitch,u8 color) {
 }
 
 void vga2fb() {
-    if(!fb_addr)return;
+    while(true){
+    if(!fb_addr)continue;
     for (u32 row = 0; row < HEIGHT; row++) {
         for (u32 col = 0; col < WIDTH; col++) {
             u16 cell = video[row * 80 + col];
@@ -62,5 +63,6 @@ void vga2fb() {
 	    put_sym(symbol,col*8,row*16,fg_color,bg_color);
         }
     }
+   }
 }
 

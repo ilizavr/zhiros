@@ -131,7 +131,6 @@ void cls()
 {
 	__set_cursor_offset(0);
 	memset_short(video,' '|0b0111<<8,WIDTH*HEIGHT);
-	vga2fb();
 }
 void roll_up(short *current_pos)
 {
@@ -157,7 +156,6 @@ void print_color(char * string, char color)
 
 	}
 	__set_cursor_offset(current_position);
-vga2fb();
 }
 
 void putchar(char chr)
@@ -177,7 +175,6 @@ void putchar(char chr)
 
         __set_cursor_offset(current_position);
 
-vga2fb();
 }
 
 void print(char * string)

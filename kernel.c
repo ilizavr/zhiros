@@ -418,6 +418,7 @@ void main(){
 	KLOGI("system functions registered\n");	
 	
 	create_process((u32)start_shell,"shell");
+	create_process((u32)vga2fb,"vga2fb");
 
 	asm volatile ("sti");
 }
