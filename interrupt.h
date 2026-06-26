@@ -17,8 +17,8 @@ void pic_remap()
 	outb(0xA1,0x01);
 
 	//enable interrupts
-	outb(0x21,0xFC);//IRQ0 IRQ1
-	outb(0xA1,0xFF);
+	outb(0x21,0);
+	outb(0xA1,0);
 }
 
 __attribute__((packed))struct idt_entry

@@ -18,6 +18,7 @@ __attribute__((packed)) struct function_info
 {
 	function call;
 	char * name;
+	char * description;
 	struct function_info* next;
 };
 
@@ -37,11 +38,13 @@ function resolve_function(char * function_name)
 	return 0;
 }
 
-void register_function(char *function_name, function call)
+void register_function(char *function_name, function call, char *description)
 {
 	struct function_info * newfnc = kalloc(sizeof(struct function_info));
 	newfnc->next = head_fnc;
 	newfnc->name = strdup(function_name);
+	if(description)newfnc->description = strdup(description);
+	else newfnc->description = "";
 	newfnc->call = call;
 	head_fnc = newfnc;
 }

@@ -3,6 +3,7 @@ struct Task
 	char *name;
 	u32 esp;
 	void* start_esp;
+	void (*drawframe)();
 };
 
 #define MAX_TASK_COUNT 10
@@ -33,7 +34,8 @@ void kill(int pid)
 	tasks[pid] = 0;
 }
 
-void create_process(u32 func,char *name)
+
+void create_process(u32 func,char *name,void(*drawframe)())
 {
 	for(int i = 0;i<MAX_TASK_COUNT;i++)
 	{
@@ -54,6 +56,7 @@ void create_process(u32 func,char *name)
 		stack--; *stack = 0;
 
 		tasks[i]->esp = (u32)stack;
+		tasks[i]->drawframe = drawframe;
 		return;
 	}
 }

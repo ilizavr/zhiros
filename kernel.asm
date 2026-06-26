@@ -42,22 +42,23 @@ _start:
  call _multiboot_entry
 
  jmp $
-
 keyboard_isr_handler:
+ cli
  pusha
-
  call keyboard_handler
-
  popa
+ sti
 _none_interrupt:
  iret
 timer_isr_handler:
+ cli
  pusha
  add dword [timerticks],10
  add dword [ticks],10
  call pic_eoi
  call schedule
  popa
+ sti
  iret
 
 context_switch:
@@ -76,6 +77,9 @@ context_switch:
  pop esi
  pop ebx
  pop ebp
+ 
+ sti
+ 
  ret
 
 section .bss

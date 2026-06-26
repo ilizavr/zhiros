@@ -122,9 +122,6 @@ void input(char * string, int maxlen)
 	}
 	string[i] = 0;
 }
-//void start_shell();
-//void kill(int);
-//void create_process(u32,char*);
 void keyboard_handler()
 {
 	last_pressed_key = port_byte_in(0x60);
@@ -143,16 +140,11 @@ void keyboard_handler()
 		asm volatile("sti");
 	}*/	
 
-	/*if(ctrl_pressed&&keyboard_map[last_pressed_key]>='0'&&keyboard_map[last_pressed_key]<='9') {
-		current_task_fb = tasks_fb[keyboard_map[last_pressed_key]-'0'];
-
-	}*/
+	if(ctrl_pressed&&keyboard_map[last_pressed_key]>='0'&&keyboard_map[last_pressed_key]<='9') {
+		clear_signal = true;
+		current_process = keyboard_map[last_pressed_key]-'0';
+		last_pressed_key = 0;
+	}
 	pic_eoi();
 }
 
-extern void keyboard_isr_handler();
-
-void init_keyboard_interrupt()
-{
-	set_idt_gate(33, (u32)keyboard_isr_handler);
-}

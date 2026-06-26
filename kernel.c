@@ -4,11 +4,13 @@ short *video = (short*)0xB8000;
 u32 ticks = 0;
 #include "ports.h"
 #include "serial.h"
-#include "fb.h"
 #include "print.h"
 #include "allocator.h"
 #include "interrupt.h"
 #include "cpu.h"
+#include "process.h"
+#include "mouse.h"
+#include "fb.h"
 #include "keyboard.h"
 #include "function_manager.h"
 #include "shell.h"
@@ -19,7 +21,6 @@ u32 ticks = 0;
 #include "pci.h"
 #include "fat16.h"
 #include "rand.h"
-#include "process.h"
 
 struct object *echo(struct objectArray* args)
 {
@@ -85,21 +86,21 @@ struct object *screenfetch(struct objectArray* args)
 	
 	print_color("RAM free:", 0b0010);
 	print_int(freemem>>20);
-	print("MB\n");
+	print("M\n");
 	
 	print_color(fetch_logo[3],0b1110);
 	for(int i = strlen(fetch_logo[3]);i<25;i++) putchar(' ');
 	
 	print_color("allocated:", 0b0110);
-	print_int(used);
-	print("\n");
+	print_int(used>>10);
+	print("k\n");
 	
 	print_color(fetch_logo[4],0b1110);
 	for(int i = strlen(fetch_logo[4]);i<25;i++) putchar(' ');
 	
 	print_color("ramdisk/kernel:", 0b0100);
 	print_int(ramdisk_size>>20);
-	print("MB\n");
+	print("M\n");
 
 	print_color(fetch_logo[5],0b1110);
 	for(int i = strlen(fetch_logo[5]);i<25;i++) putchar(' ');
@@ -134,10 +135,13 @@ struct object *help(struct objectArray* args)
 	struct function_info *current = head_fnc;
 	while(current){
 		print(current->name);
-		print(",");
+		for(int i = strlen(current->name);i<20;i++) putchar(' ');
+		print_color(current->description,0b0011);
+		print("\n");
 		current = current->next;
 	}
-	print("\n");
+	print("windows manager     ");
+	print_color("press ctrl+num to select window\n",0b0101);
 	return 0;
 }
 
@@ -204,6 +208,35 @@ struct object *cat(struct objectArray* args)
 	print(buffer);
 
 	free(bpb);free(rootdir);free(root_buffer);free(file);free(buffer);
+
+	return 0;
+}
+struct image*curimg=0;
+
+struct object *img(struct objectArray* args)
+{
+	if(args->count <2){
+		KLOGE("use img <diskletter> <file name>\n");
+		return 0;
+	}
+	int diskid = *(char*)args->objs[0].data-'a';
+	struct disk *dsk =disks[diskid];
+	BPB* bpb = read_first_sector(dsk);
+	RootDir* rootdir=calculateRootDir(bpb);
+	u8* root_buffer = readRootDir(dsk,rootdir,bpb);
+	DirEntry *file = find_file(root_buffer,bpb,args->objs[1].data);
+	if(!file) 
+	{
+		KLOGE("file not found\n");
+		free(bpb);free(rootdir);free(root_buffer);
+	
+		return 0;
+	}
+	if(curimg)free(curimg);
+	curimg = kalloc(get_file_size(file,bpb));
+	load_file(dsk,file,bpb,rootdir,(void*)curimg);
+
+	free(bpb);free(rootdir);free(root_buffer);free(file);
 
 	return 0;
 }
@@ -377,6 +410,8 @@ struct object *wf(struct objectArray* args)
 
 struct object *ps(struct objectArray *args)
 {
+	mouse_init();
+
 	print("PID | name\n");
 	for(int i = 0;i<MAX_TASK_COUNT;i++)
 	{
@@ -388,37 +423,72 @@ struct object *ps(struct objectArray *args)
 	}	
 }
 
+
+void emptyprocess()
+{
+	while(true)asm volatile("hlt");
+}
+s32 old_mouse_x=0,old_mouse_y=0;
+
+void testdrawframe()
+{
+	put_text("mouse demo",0,0,0xAA0088,0);
+	
+	if (mouse_x == old_mouse_x && mouse_y == old_mouse_y) return;
+    	
+	for(int x = old_mouse_x-8;x<old_mouse_x+16;x++)for(int y = old_mouse_y-16;y<old_mouse_y+32;y++){
+		put_pixel(x,y,0);
+	}
+	
+	put_sym('^',mouse_x,mouse_y,0xFFFFFFFF,0);
+	old_mouse_x = mouse_x;
+	old_mouse_y = mouse_y;
+}
+
+void testdrawimage()
+{
+	put_text("image demo",0,0,0xAA0088,0);
+	if(curimg)drawimage(curimg,0,20);
+}
+
+extern void keyboard_isr_handler();
+
 void main(){
 	pic_remap();
 	init_idt();
-	init_keyboard_interrupt();
+	set_idt_gate(33, (u32)keyboard_isr_handler);
 	init_timer();
 	init_cpu_exception();
 	
 	find_pci_devices();
 
-	register_function("echo",echo);
-	register_function("ps",ps);
-	register_function("wf",wf);
-	register_function("cat",cat);
-	register_function("touch",touch);
-	register_function("ls",ls);
-	register_function("hexdump",hexdump_cmd);
-	register_function("lspci",lspci);
-	register_function("screenfetch",screenfetch);
-	register_function("date",date);
-	register_function("uptime",uptime);
-	register_function("lsblk",lsblk);
-	register_function("dmpdsk",dump_disk);
-	register_function("dmpmem",dump_mem);
-	register_function("clear",clear);
-	register_function("random", random);
-	register_function("help",help);
+	mouse_init();
+
+	register_function("random", random,"random value");
+	register_function("img",img,"view image from file");
+	register_function("wf",wf,"write to file");
+	register_function("touch",touch,"create file");
+	register_function("hexdump",hexdump_cmd,"print file in hexview");
+	register_function("cat",cat,"print file to console");
+	register_function("ls",ls,"print files in dirrectory");
+	register_function("dmpdsk",dump_disk,"lowlevel dump disk sectors");
+	register_function("dmpmem",dump_mem,"lowlevel dump RAM");
+	register_function("lspci",lspci,"print all pci device info");
+	register_function("lsblk",lsblk,"print all disk");
+	register_function("ps",ps,"list process");
+	register_function("uptime",uptime,"print system uptime");
+	register_function("date",date,"print date and time");
+	register_function("fetch",screenfetch,"short system information");
+	register_function("clear",clear,"clear screen");
+	register_function("echo",echo,"print to console");
+	register_function("help",help,0);
 	
 	KLOGI("system functions registered\n");	
 	
-	create_process((u32)start_shell,"shell");
-	create_process((u32)vga2fb,"vga2fb");
+	create_process((u32)windowsmanager,"windows manager",0);
+	create_process((u32)start_shell,"shell",ega2fb);
+	create_process((u32)process_mouse,"mouse demo",testdrawframe);
+	create_process((u32)emptyprocess,"image demo",testdrawimage);
 
 	asm volatile ("sti");
 }

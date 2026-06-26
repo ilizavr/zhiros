@@ -3,7 +3,7 @@
 #define VGA_OFFSET_LOW 0x0f
 #define VGA_OFFSET_HIGH 0x0e
 
-
+u8 WIDTH = 80,HEIGHT=25;
 
 int strlen(const char *s)
 {
