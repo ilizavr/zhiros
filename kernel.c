@@ -67,43 +67,61 @@ struct object *screenfetch(struct objectArray* args)
 	
 	print_color(fetch_logo[0],0b1110);
 	for(int i = strlen(fetch_logo[0]);i<25;i++) putchar(' ');
-	print_color("[ZHIR OS]\n",0b1110);
+	print_color("OS: ",0b0011);
+	print("ZHIROS\n");
 
-	char *cpu_model = kalloc(64);
-        get_cpu_model(cpu_model);
-        
 	print_color(fetch_logo[1],0b1110);
 	for(int i = strlen(fetch_logo[1]);i<25;i++) putchar(' ');
 	
-	print_color("CPU:",0b0011);
-	print(cpu_model);
-        print("\n");
-	free(cpu_model);
+	print_color("Uptime: ",0b0011);
+	u32 all = ticks/1000;
+        u32 sec = all%60;
+        all/=60;
+        u32 min = all%60;
+        all/=60;
+        u32 hour = all;
+
+        if(hour>0){print_int(hour);print("h ");}
+        if(min>0){print_int(min);print("m ");}
+        print_int(sec);print("s\n");
 	
 
 	print_color(fetch_logo[2],0b1110);
 	for(int i = strlen(fetch_logo[2]);i<25;i++) putchar(' ');
 	
-	print_color("RAM free:", 0b0010);
-	print_int(freemem>>20);
-	print("M\n");
+	print_color("Display: ", 0b0011);
+	print_int(screen_width);
+	print("x");
+	print_int(screen_height);
+	print("\n");
 	
 	print_color(fetch_logo[3],0b1110);
 	for(int i = strlen(fetch_logo[3]);i<25;i++) putchar(' ');
 	
-	print_color("allocated:", 0b0110);
-	print_int(used>>10);
-	print("k\n");
-	
+
+	char *cpu_model = kalloc(64);
+        get_cpu_model(cpu_model);
+        
+	print_color("CPU: ", 0b0011);
+	print(cpu_model);
+	print("\n");
+	free(cpu_model);	
+
 	print_color(fetch_logo[4],0b1110);
 	for(int i = strlen(fetch_logo[4]);i<25;i++) putchar(' ');
 	
-	print_color("ramdisk/kernel:", 0b0100);
-	print_int(ramdisk_size>>20);
+	print_color("Memory:", 0b0011);
+	print_int(used>>10);
+	print("k/");
+	print_int((used+freemem)>>20);
 	print("M\n");
 
 	print_color(fetch_logo[5],0b1110);
 	for(int i = strlen(fetch_logo[5]);i<25;i++) putchar(' ');
+	print("\n");
+
+	for(int i = 0;i<25;i++)putchar(' ');
+	for(int i = 0;i<16;i++)print_color(" ",i<<4);
 	print("\n");
 	return 0;
 }
@@ -408,9 +426,21 @@ struct object *wf(struct objectArray* args)
 	return 0;
 }
 
+struct object *kill_cmd(struct objectArray *args)
+{
+	if(args->count<1){
+		KLOGE("use kill <pid>");
+		return 0;
+	}
+	
+	int pid = str2int(args->objs[0].data);
+	kill(pid);
+
+	return 0;
+}
+
 struct object *ps(struct objectArray *args)
 {
-	mouse_init();
 
 	print("PID | name\n");
 	for(int i = 0;i<MAX_TASK_COUNT;i++)
@@ -420,7 +450,9 @@ struct object *ps(struct objectArray *args)
 		print("     ");
 		print(tasks[i]->name);
 		print("\n");
-	}	
+	}
+
+	return 0;	
 }
 
 
@@ -432,8 +464,6 @@ s32 old_mouse_x=0,old_mouse_y=0;
 
 void testdrawframe()
 {
-	put_text("mouse demo",0,0,0xAA0088,0);
-	
 	if (mouse_x == old_mouse_x && mouse_y == old_mouse_y) return;
     	
 	for(int x = old_mouse_x-8;x<old_mouse_x+16;x++)for(int y = old_mouse_y-16;y<old_mouse_y+32;y++){
@@ -447,8 +477,7 @@ void testdrawframe()
 
 void testdrawimage()
 {
-	put_text("image demo",0,0,0xAA0088,0);
-	if(curimg)drawimage(curimg,0,20);
+	if(curimg)drawimage(curimg,0,17);
 }
 
 extern void keyboard_isr_handler();
@@ -476,6 +505,7 @@ void main(){
 	register_function("lspci",lspci,"print all pci device info");
 	register_function("lsblk",lsblk,"print all disk");
 	register_function("ps",ps,"list process");
+	//register_function("kill",kill_cmd,"kill process");
 	register_function("uptime",uptime,"print system uptime");
 	register_function("date",date,"print date and time");
 	register_function("fetch",screenfetch,"short system information");

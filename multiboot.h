@@ -41,11 +41,12 @@ __attribute__((packed)) struct multiboot_mod_list
         u32 pad;
 };
 
-short test_video_buffer[80*25+0x40];
+short test_video_buffer[80*80+0x40];
 
 void _multiboot_entry(struct multiboot_info* mbi,u32 magic,u8 codesegment){
 	if(mbi->framebuffer_type==1){
 		video = test_video_buffer+0x20;
+		cls();
 		fbdev_init(mbi->framebuffer_addr,mbi->framebuffer_width,mbi->framebuffer_height,mbi->framebuffer_pitch,mbi->framebuffer_bpp);		
 	}
 	code_segment = codesegment;//for interrupts

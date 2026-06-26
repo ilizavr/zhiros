@@ -15,7 +15,7 @@ section .multiboot
  dd 0
  dd 0
  dd 640
- dd 400
+ dd 480
  dd 0
 
 section .text

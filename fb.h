@@ -40,6 +40,11 @@ void put_sym(u8 sym, u32 startx, u32 starty,u32 color,u32 bgcolor)
 	}
 }
 
+void draw_horisontal_line(u32 startx, u32 endx, u32 y, u32 color)
+{
+	for(int x = startx; x<endx;x++)put_pixel(x,y,color);
+}
+
 void put_text(char *text, u32 startx, u32 starty, u32 color, u32 bgcolor)
 {
 	for(int i = 0;i<strlen(text);i++)
@@ -60,6 +65,8 @@ void fbdev_init(u64 addr, u32 width, u32 height, u32 pitch,u8 color) {
     screen_width = width; 
     screen_height = height; 
     screen_pitch = pitch;
+
+    HEIGHT = screen_height/16 - 1;
 }
 
 void ega2fb() {
@@ -73,7 +80,7 @@ void ega2fb() {
             u32 fg_color = vga_palette[attr & 0x0F];
             u32 bg_color = vga_palette[(attr >> 4) & 0x0F];
 	
-	    put_sym(symbol,col*8,row*16,fg_color,bg_color);
+	    put_sym(symbol,col*8,row*16+17,fg_color,bg_color);
         }
     }
 }
@@ -86,7 +93,13 @@ void windowsmanager()
 			clearframe();
 			clear_signal = false;
 		}
-		if(tasks[current_process]&&tasks[current_process]->drawframe) tasks[current_process]->drawframe();
+		if(tasks[current_process]&&tasks[current_process]->drawframe) {
+			char *name = tasks[current_process]->name;
+			u32 x = (screen_width/8 - strlen(name)) * 4;
+			put_text(name,x,0,0xFFFFFF,0);
+			draw_horisontal_line(0,screen_width,16,0xFFFFFF);
+			tasks[current_process]->drawframe();
+		}
 		else clearframe();
 	}
 }
