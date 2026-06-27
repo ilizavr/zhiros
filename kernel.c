@@ -21,6 +21,7 @@ u32 ticks = 0;
 #include "pci.h"
 #include "fat16.h"
 #include "rand.h"
+#include "acpi.h"
 
 struct object *echo(struct objectArray* args)
 {
@@ -429,7 +430,7 @@ struct object *wf(struct objectArray* args)
 struct object *kill_cmd(struct objectArray *args)
 {
 	if(args->count<1){
-		KLOGE("use kill <pid>");
+		KLOGE("use kill <pid>\n");
 		return 0;
 	}
 	
@@ -438,7 +439,18 @@ struct object *kill_cmd(struct objectArray *args)
 
 	return 0;
 }
+struct object *sleep_cmd(struct objectArray *args)
+{
+	if(args->count<1){
+		KLOGE("use sleep <millisecond>\n");
+		return 0;
+	}
+	
+	int m = str2int(args->objs[0].data);
+	sleep(m);
 
+	return 0;
+}
 struct object *ps(struct objectArray *args)
 {
 
@@ -454,6 +466,44 @@ struct object *ps(struct objectArray *args)
 
 	return 0;	
 }
+struct object *reboot(struct objectArray *args)
+{
+	asm volatile("cli");
+	u8 good = 0x02;
+	while(good&0x02)good=inb(0x64);	
+
+	outb(0x64,0xfe);
+
+	return 0;	
+}
+
+struct object *poweroff(struct objectArray *args)
+{
+	int slptypea = 0,slptypeb = 0;
+
+	if(args->count>=2){
+		slptypea = str2int(args->objs[0].data);
+		slptypeb = str2int(args->objs[1].data);
+	}
+	else if(args->count==1){
+		slptypea = str2int(args->objs[0].data);
+		slptypeb = str2int(args->objs[0].data);
+	}
+
+	asm volatile("cli");
+	asm volatile("wbinvd");
+
+	outw(fadt->PM1aControlBlock, (slptypea << 10) | (1 << 13));
+	if (fadt->PM1bControlBlock != 0) {
+		outw(fadt->PM1bControlBlock, (slptypeb << 10) | (1 << 13));
+	}
+
+	asm volatile("sti");
+
+	return 0;
+}
+
+
 
 
 void emptyprocess()
@@ -483,6 +533,8 @@ void testdrawimage()
 extern void keyboard_isr_handler();
 
 void main(){
+	enableacpi();
+
 	pic_remap();
 	init_idt();
 	set_idt_gate(33, (u32)keyboard_isr_handler);
@@ -493,6 +545,8 @@ void main(){
 
 	mouse_init();
 
+	register_function("reboot", reboot,0);
+	register_function("poweroff", poweroff,0);
 	register_function("random", random,"random value");
 	register_function("img",img,"view image from file");
 	register_function("wf",wf,"write to file");
@@ -505,8 +559,9 @@ void main(){
 	register_function("lspci",lspci,"print all pci device info");
 	register_function("lsblk",lsblk,"print all disk");
 	register_function("ps",ps,"list process");
-	//register_function("kill",kill_cmd,"kill process");
-	register_function("uptime",uptime,"print system uptime");
+	register_function("kill",kill_cmd,"kill process");
+	register_function("uptime",uptime,0);
+	register_function("sleep",sleep_cmd,"test sleep");
 	register_function("date",date,"print date and time");
 	register_function("fetch",screenfetch,"short system information");
 	register_function("clear",clear,"clear screen");
@@ -520,6 +575,7 @@ void main(){
 	create_process((u32)process_mouse,"mouse demo",testdrawframe);
 	create_process((u32)emptyprocess,"image demo",testdrawimage);
 
+	is_interrupt_enabled = true;
 	asm volatile ("sti");
 }
 

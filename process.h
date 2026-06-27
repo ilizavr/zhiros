@@ -28,10 +28,13 @@ void task_entry_stub(u32 func)
 
 void kill(int pid)
 {
+	asm volatile("cli");
+
 	free(tasks[pid]->start_esp);
 	free(tasks[pid]->name);
 	free(tasks[pid]);
 	tasks[pid] = 0;
+	asm volatile("sti");
 }
 
 

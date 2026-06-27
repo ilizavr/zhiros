@@ -138,8 +138,11 @@ void roll_up(short *current_pos)
 	memset_short(video+(HEIGHT-1)*WIDTH,' ' | (0b0111<<8) ,WIDTH);
 	*current_pos-=WIDTH;
 }
+bool is_interrupt_enabled=false;
+
 void print_color(char * string, char color)
 {
+	asm volatile("cli");
 	serial_print(string);
 	short current_position = __get_cursor_offset();
 
@@ -156,6 +159,7 @@ void print_color(char * string, char color)
 
 	}
 	__set_cursor_offset(current_position);
+	if(is_interrupt_enabled) asm volatile("sti");
 }
 
 void putchar(char chr)

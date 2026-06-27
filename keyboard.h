@@ -142,6 +142,7 @@ void keyboard_handler()
 
 	if(ctrl_pressed&&keyboard_map[last_pressed_key]>='0'&&keyboard_map[last_pressed_key]<='9') {
 		clear_signal = true;
+		ega2fb_clear_signal = true;
 		current_process = keyboard_map[last_pressed_key]-'0';
 		last_pressed_key = 0;
 	}

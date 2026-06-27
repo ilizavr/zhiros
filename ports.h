@@ -54,6 +54,8 @@ static inline void outsw(u16 port, const void *addr, u32 count) {
 	);
 }
 #define inb port_byte_in
+#define inw port_word_in
 #define inl port_dword_in
 #define outb port_byte_out
+#define outw port_word_out
 #define outl port_dword_out

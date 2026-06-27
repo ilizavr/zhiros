@@ -66,23 +66,38 @@ void fbdev_init(u64 addr, u32 width, u32 height, u32 pitch,u8 color) {
     screen_height = height; 
     screen_pitch = pitch;
 
+    WIDTH = screen_width/8;
     HEIGHT = screen_height/16 - 1;
 }
 
+extern u32 timerticks;
+u32 lastticks;
+
+short old_video_buffer[100*100+0x40];
+bool ega2fb_clear_signal = false;
+
 void ega2fb() {
     if(!fb_addr)return;
+    
     for (u32 row = 0; row < HEIGHT; row++) {
         for (u32 col = 0; col < WIDTH; col++) {
-            u16 cell = video[row * 80 + col];
+            u16 cell = video[row * WIDTH + col];
+            u16 old = old_video_buffer[row*WIDTH+col];
+            if(cell==old&&!ega2fb_clear_signal){
+                continue;
+            } else old_video_buffer[row*WIDTH+col]=cell;
             u8 symbol = cell & 0xFF;
             u8 attr = (cell >> 8) & 0xFF;
 
             u32 fg_color = vga_palette[attr & 0x0F];
             u32 bg_color = vga_palette[(attr >> 4) & 0x0F];
-	
-	    put_sym(symbol,col*8,row*16+17,fg_color,bg_color);
+	    
+            put_sym(symbol,col*8,row*16+17,fg_color,bg_color);
         }
     }
+    
+    ega2fb_clear_signal = false;
+
 }
 
 void windowsmanager()
@@ -93,14 +108,18 @@ void windowsmanager()
 			clearframe();
 			clear_signal = false;
 		}
-		if(tasks[current_process]&&tasks[current_process]->drawframe) {
+		if(tasks[current_process]){
+			asm volatile("cli");
+
 			char *name = tasks[current_process]->name;
 			u32 x = (screen_width/8 - strlen(name)) * 4;
 			put_text(name,x,0,0xFFFFFF,0);
 			draw_horisontal_line(0,screen_width,16,0xFFFFFF);
 			tasks[current_process]->drawframe();
+  			asm volatile("sti");
 		}
 		else clearframe();
+                asm volatile("hlt");
 	}
 }
 

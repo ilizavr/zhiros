@@ -41,7 +41,7 @@ __attribute__((packed)) struct multiboot_mod_list
         u32 pad;
 };
 
-short test_video_buffer[80*80+0x40];
+short test_video_buffer[100*100+0x40];
 
 void _multiboot_entry(struct multiboot_info* mbi,u32 magic,u8 codesegment){
 	if(mbi->framebuffer_type==1){
