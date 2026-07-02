@@ -16,7 +16,7 @@ void add_ram_disk(char *name, char* buffer,u32 size)
 	struct disk* newdisk = kalloc(sizeof(struct disk));
 	newdisk->lba_read = ramdisk_read;
 	newdisk->lba_write = ramdisk_write;
-	newdisk->size = size;
+	newdisk->size = size>>9;
 
 	bool diskadded = false;
 
@@ -37,6 +37,8 @@ void add_ram_disk(char *name, char* buffer,u32 size)
 
 	newdisk->name = strdup(name);
 	
+	read_mbr(newdisk);
+
 	KLOGI("add ramdisk name:");
 	print(name);
 	print(" size:");

@@ -5,13 +5,58 @@
 
 u8 WIDTH = 80,HEIGHT=25;
 
-int strlen(const char *s)
-{
-    int i = 0;
-    while (*(s++))
-        i++;
-    return i;
+void *memset(void *s, int c, size_t n) {
+        unsigned char *p = s;
+        while (n--) *p++ = (unsigned char)c;
+        return s;
 }
+void *memcpy(void *dest, const void *src, size_t n) {
+        unsigned char *d = dest;
+        const unsigned char *s = src;
+        while (n--) *d++ = *s++;
+        return dest;
+}
+void *memmove(void *dest, const void *src, size_t n) {
+        unsigned char *d = dest;
+        const unsigned char *s = src;
+        if (d < s) {
+                while (n--) *d++ = *s++;
+        } else {
+                d += n; s += n;
+                while (n--) *--d = *--s;
+        }
+        return dest;
+}
+int memcmp(const void *s1, const void *s2, size_t n) {
+        const unsigned char *p1 = s1, *p2 = s2;
+        while (n--) {
+                if (*p1 != *p2) return *p1 - *p2;
+                p1++; p2++;
+        }
+        return 0;
+}
+size_t strlen(const char *s) {
+        size_t len = 0;
+        while (*s++) len++;
+        return len;
+}
+int strncmp(const char *s1, const char *s2, size_t n) {
+        while (n && *s1 && (*s1 == *s2)) { s1++; s2++; n--; }
+        if (n == 0) return 0;
+        return *(unsigned char *)s1 - *(unsigned char *)s2;
+}
+char *strchr(const char *s, int c) {
+        while (*s) {
+                if (*s == (char)c) return (char *)s;
+                s++;
+        }
+        return 0;
+}
+int strcmp(const char *s1, const char *s2) {
+        while (*s1 && (*s1 == *s2)) { s1++; s2++; }
+        return *(unsigned char *)s1 - *(unsigned char *)s2;
+}
+
 
 char *strcpy(char *dest, const char *src)
 {
@@ -21,38 +66,6 @@ char *strcpy(char *dest, const char *src)
     return saved;
 }
 
-void memcpy(char *dst, char *src, int size)
-{
-    while (size > 0)
-    {
-        *(dst++) = *(src++);
-        size--;
-    }
-}
-
-int strcmp(const char *s1, const char *s2)
-{
-    while (*s1 && *s2 && *s1 == *s2)
-    {
-        s1++;
-        s2++;
-    }
-    return (u8)*s1 - (u8)*s2;
-}
-
-int memcmp(const void *s1, const void *s2, unsigned int n)
-{
-    const u8 *p1 = s1;
-    const u8 *p2 = s2;
-    for (unsigned int i = 0; i < n; i++)
-    {
-        if (p1[i] != p2[i])
-        {
-            return p1[i] - p2[i];
-        }
-    }
-    return 0;
-}
 
 void memmove_short(short *dst, short *src, int size)
 {
@@ -61,6 +74,7 @@ void memmove_short(short *dst, short *src, int size)
         dst[i] = src[i];
     }
 }
+
 
 void memset_short(short *dst, short sym, int size)
 {
@@ -140,6 +154,8 @@ void roll_up(short *current_pos)
 }
 bool is_interrupt_enabled=false;
 
+void pic_eoi();
+
 void print_color(char * string, char color)
 {
 	asm volatile("cli");
@@ -159,11 +175,16 @@ void print_color(char * string, char color)
 
 	}
 	__set_cursor_offset(current_position);
-	if(is_interrupt_enabled) asm volatile("sti");
+	if(is_interrupt_enabled) {
+		pic_eoi();
+		asm volatile("sti");
+	}
 }
 
 void putchar(char chr)
 {
+	asm volatile("cli");
+	
 	serial_putc(chr);	
 
 	short current_position = __get_cursor_offset();
@@ -178,7 +199,11 @@ void putchar(char chr)
        	if(y>=HEIGHT)roll_up(&current_position);
 
         __set_cursor_offset(current_position);
-
+	
+	if(is_interrupt_enabled) {
+		pic_eoi();
+		asm volatile("sti");
+	}
 }
 
 void print(char * string)

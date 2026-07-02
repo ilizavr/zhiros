@@ -88,10 +88,10 @@ char *convert_filename(const char *file)
 }
 
 
-BPB *read_first_sector(struct disk *dsk)
+BPB *read_first_sector(u32 partstart,struct disk *dsk)
 {
     u8 *buf = kalloc(512);
-    dsk->lba_read(dsk->id, 0, buf, 1);
+    dsk->lba_read(dsk->id, 0+partstart, buf, 1);
 
     if (buf[0x1FE] != 0x55 && buf[0x1FF] != 0xAA)
     {
@@ -119,13 +119,13 @@ RootDir *calculateRootDir(BPB *bpb)
     return root;
 }
 
-u8 *readRootDir(struct disk *dsk, RootDir *root, BPB *bpb)
+u8 *readRootDir(u32 partstart,struct disk *dsk, RootDir *root, BPB *bpb)
 {
     u8 *root_buffer = kalloc(root->root_size * bpb->bytes_per_sector);
 
     for (u32 i = 0; i < root->root_size; i++)
     {
-        dsk->lba_read(dsk->id, root->root_start + i, root_buffer + (i * bpb->bytes_per_sector), 1);
+        dsk->lba_read(dsk->id, partstart+root->root_start + i, root_buffer + (i * bpb->bytes_per_sector), 1);
     }
 
     return root_buffer;
@@ -185,7 +185,7 @@ u32 get_file_size(DirEntry *file, BPB *bpb)
     return ret;
 }
 
-void load_file(struct disk *dsk, DirEntry *file, BPB *bpb, RootDir *root, u8 *dest)
+void load_file(u32 partstart,struct disk *dsk, DirEntry *file, BPB *bpb, RootDir *root, u8 *dest)
 {
    u32 cluster = file->first_cluster;
     u32 file_offset = 0;
@@ -196,21 +196,21 @@ void load_file(struct disk *dsk, DirEntry *file, BPB *bpb, RootDir *root, u8 *de
 
         for (u32 i = 0; i < bpb->sectors_per_cluster; i++)
         {
-            dsk->lba_read(dsk->id, lba + i, dest + file_offset, 1);
+            dsk->lba_read(dsk->id, partstart+lba + i, dest + file_offset, 1);
             file_offset += bpb->bytes_per_sector;
         }
 
         u32 fat_offset = cluster * 2;
         u8 *fat_sector = kalloc(512);
 
-        dsk->lba_read(dsk->id, root->fat_start + fat_offset / 512, fat_sector, 1);
+        dsk->lba_read(dsk->id, partstart+ root->fat_start + fat_offset / 512, fat_sector, 1);
         cluster = *(u16 *)(fat_sector + fat_offset % 512);
 
         free(fat_sector);
     }
 }
 
-u32 find_free_cluster(struct disk *dsk, BPB *bpb, RootDir *root)
+u32 find_free_cluster(u32 partstart,struct disk *dsk, BPB *bpb, RootDir *root)
 {
     u8 fat_sector[512];
     u32 total_clusters = (bpb->total_sectors_32 - root->data_start) / bpb->sectors_per_cluster;
@@ -221,7 +221,7 @@ u32 find_free_cluster(struct disk *dsk, BPB *bpb, RootDir *root)
         u32 fat_sector_index = fat_offset / 512;
         u32 fat_offset_in_sector = fat_offset % 512;
 
-        dsk->lba_read(dsk->id, root->fat_start + fat_sector_index, fat_sector, 1);
+        dsk->lba_read(dsk->id, partstart+root->fat_start + fat_sector_index, fat_sector, 1);
 
         u16 value = *(u16 *)(fat_sector + fat_offset_in_sector);
 
@@ -234,34 +234,34 @@ u32 find_free_cluster(struct disk *dsk, BPB *bpb, RootDir *root)
     return 0;
 }
 
-u16 read_fat(struct disk *dsk, u32 cluster, BPB *bpb, RootDir *root)
+u16 read_fat(u32 partstart,struct disk *dsk, u32 cluster, BPB *bpb, RootDir *root)
 {
     u32 fat_offset = cluster * 2;
     u32 fat_sector_idx = fat_offset / bpb->bytes_per_sector;
     u32 fat_offset_in_sector = fat_offset % bpb->bytes_per_sector;
 
     u8 fat_sector[512];
-    dsk->lba_read(dsk->id, root->fat_start + fat_sector_idx, fat_sector, 1);
+    dsk->lba_read(dsk->id, partstart+root->fat_start + fat_sector_idx, fat_sector, 1);
 
     return *(u16 *)(fat_sector + fat_offset_in_sector);
 }
 
-void write_fat(struct disk *dsk, u32 cluster, u16 next, BPB *bpb, RootDir *root)
+void write_fat(u32 partstart,struct disk *dsk, u32 cluster, u16 next, BPB *bpb, RootDir *root)
 {
     u32 fat_offset = cluster * 2;
     u32 fat_sector_idx = fat_offset / bpb->bytes_per_sector;
     u32 fat_offset_in_sector = fat_offset % bpb->bytes_per_sector;
 
     u8 fat_sector[512];
-    dsk->lba_read(dsk->id,root->fat_start + fat_sector_idx, fat_sector, 1);
+    dsk->lba_read(dsk->id,partstart+root->fat_start + fat_sector_idx, fat_sector, 1);
 
     *(u16 *)(fat_sector + fat_offset_in_sector) = next;
 
-    dsk->lba_write(dsk->id,root->fat_start + fat_sector_idx, fat_sector, 1);
+    dsk->lba_write(dsk->id,partstart+root->fat_start + fat_sector_idx, fat_sector, 1);
 
     if (bpb->number_of_fats == 2)
     {
-        dsk->lba_write(dsk->id,root->fat_start + bpb->sectors_per_fat + fat_sector_idx, fat_sector, 1);
+        dsk->lba_write(dsk->id,partstart+root->fat_start + bpb->sectors_per_fat + fat_sector_idx, fat_sector, 1);
     }
 }
 
@@ -294,11 +294,11 @@ name=convert_filename(name);
     return 0;
 }
 
-int write_file(struct disk *dsk, DirEntry *file, BPB *bpb, RootDir *root, u8 *data, u32 size)
+int write_file(u32 partstart,struct disk *dsk, DirEntry *file, BPB *bpb, RootDir *root, u8 *data, u32 size)
 {
     if (file->first_cluster == 0)
     {
-        u32 cluster = find_free_cluster(dsk, bpb, root);
+        u32 cluster = find_free_cluster(partstart,dsk, bpb, root);
         if (cluster == 0)
             return -1;
         file->first_cluster = cluster;
@@ -312,17 +312,17 @@ int write_file(struct disk *dsk, DirEntry *file, BPB *bpb, RootDir *root, u8 *da
         u32 lba = root->data_start + (cluster - 2) * bpb->sectors_per_cluster;
         for (u32 i = 0; i < bpb->sectors_per_cluster && written < size; i++)
         {
-            dsk->lba_write(dsk->id,lba + i, data + written, 1);
+            dsk->lba_write(dsk->id,partstart+lba + i, data + written, 1);
             written += bpb->bytes_per_sector;
         }
 
-        u16 next = read_fat(dsk, cluster, bpb, root);
+        u16 next = read_fat(partstart,dsk, cluster, bpb, root);
         if (next >= 0xFFF8)
         {
-            next = find_free_cluster(dsk, bpb, root);
+            next = find_free_cluster(partstart,dsk, bpb, root);
             if (next == 0)
                 return -1;
-            write_fat(dsk, cluster, next, bpb, root);
+            write_fat(partstart,dsk, cluster, next, bpb, root);
         }
         cluster = next;
     }
@@ -331,10 +331,10 @@ int write_file(struct disk *dsk, DirEntry *file, BPB *bpb, RootDir *root, u8 *da
     return 0;
 }
 
-void writeRootDir(struct disk *dsk, RootDir *root, BPB *bpb, u8 *root_buffer)
+void writeRootDir(u32 partstart,struct disk *dsk, RootDir *root, BPB *bpb, u8 *root_buffer)
 {
     for (u32 i = 0; i < root->root_size; i++)
     {
-        dsk->lba_write(dsk->id, root->root_start + i, root_buffer + (i * bpb->bytes_per_sector), 1);
+        dsk->lba_write(dsk->id, partstart+root->root_start + i, root_buffer + (i * bpb->bytes_per_sector), 1);
     }
 }

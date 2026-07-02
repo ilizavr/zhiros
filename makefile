@@ -10,9 +10,12 @@ create_rd:
 	mkfs.fat -F16 iso/boot/initrd.img
 build:
 	mkdir build
+	nasm bios.asm -o build/bios
+	xxd -i build/bios > build/bios_asm_hex.h
 	$(CC) $(CFLAGS) -c kernel.c -o build/kernel_c.o
 	$(ASMC) $(ASMFLAGS) kernel.asm -o build/kernel_asm.o
 	ld $(LDFLAGS) -o build/kernel.bin build/kernel_asm.o build/kernel_c.o
+	
 	cp build/kernel.bin iso/boot/kernel.bin
 build_grub:
 	grub-mkrescue -o test.img iso/

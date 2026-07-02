@@ -116,7 +116,8 @@ void windowsmanager()
 			put_text(name,x,0,0xFFFFFF,0);
 			draw_horisontal_line(0,screen_width,16,0xFFFFFF);
 			tasks[current_process]->drawframe();
-  			asm volatile("sti");
+  			pic_eoi();
+			asm volatile("sti");
 		}
 		else clearframe();
                 asm volatile("hlt");

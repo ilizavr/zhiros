@@ -39,14 +39,12 @@ __attribute__((packed))struct idt_ptr
 struct idt_entry idt[256];
 struct idt_ptr idtp;
 
-u8 code_segment;
-
 extern void _none_interrupt();
 void set_idt_gate(u8 num,u32 base)
 {
 	idt[num].low_offset = base&0xFFFF;
 	idt[num].high_offset = (base>>16)&0xFFFF;
-	idt[num].sel = code_segment;
+	idt[num].sel = 0x08;
 	idt[num].always0 = 0;
 	idt[num].flags = 0x8E;//ring0 32bit
 }

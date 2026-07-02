@@ -1,6 +1,9 @@
 short *video = (short*)0xB8000;
 
+
+#include "config.h"
 #include "int_types.h"
+bool dont_interrupt_me = false;
 u32 ticks = 0;
 #include "ports.h"
 #include "serial.h"
@@ -22,6 +25,8 @@ u32 ticks = 0;
 #include "fat16.h"
 #include "rand.h"
 #include "acpi.h"
+#include "bios.h"
+#include "vfs.h"
 
 struct object *echo(struct objectArray* args)
 {
@@ -165,14 +170,45 @@ struct object *help(struct objectArray* args)
 }
 
 struct object *lsblk(struct objectArray* args)
-{
+{ 
+	print("NAME                CODE    SIZE\n");
+
 	for(int i = 0;i<MAX_DISK_COUNT;i++)
 	{
 		if(!disks[i])continue;
 		print(disks[i]->name);
-		print("    ");
-		putchar(i+'A');
-		print(":\n");
+		for(int j = strlen(disks[i]->name);j<20;j++) putchar(' ');
+		putchar(i+'a');
+		print("       ");
+		int sizeinmb = disks[i]->size>>11;
+		if(sizeinmb>1024)
+		{
+			print_int(sizeinmb>>10);
+			print("G\n");
+		}else{
+			print_int(sizeinmb);
+			print("MB\n");
+		}
+		for(int j = 0;j<4;j++)
+		{
+			if(disks[i]->partitions[j].total_sectors==0)continue;
+			print("  |--part");
+			print_int(j);
+			print("          ");
+			putchar(i+'a');
+			print_int(j);
+			print("      ");
+			sizeinmb = disks[i]->partitions[j].total_sectors>>11;
+			if(sizeinmb>1024)
+                	{       
+                        	print_int(sizeinmb>>10);
+                        	print("G\n");
+                	}else{
+                        	print_int(sizeinmb);
+                        	print("MB\n");
+                	}
+
+		}
 	}
 	return 0;
 }
@@ -203,30 +239,16 @@ struct object *lspci(struct objectArray* args)
 }
 struct object *cat(struct objectArray* args)
 {
-	if(args->count <2){
-		KLOGE("use cat <diskletter> <file name>\n");
+	if(args->count <1){
+		KLOGE("use cat <path>\n");
 		return 0;
 	}
-	int diskid = *(char*)args->objs[0].data-'a';
-	struct disk *dsk =disks[diskid];
-	BPB* bpb = read_first_sector(dsk);
-	RootDir* rootdir=calculateRootDir(bpb);
-	u8* root_buffer = readRootDir(dsk,rootdir,bpb);
-	DirEntry *file = find_file(root_buffer,bpb,args->objs[1].data);
-	if(!file) 
-	{
-		KLOGE("file not found\n");
-		free(bpb);free(rootdir);free(root_buffer);
 	
-		return 0;
-	}
-	void *buffer = kalloc(get_file_size(file,bpb));
-	*(char*)buffer = 0;
-	load_file(dsk,file,bpb,rootdir,buffer);
-
+	void *buffer = read(args->objs[0].data,0);
+	if(!buffer)return 0;
 	print(buffer);
 
-	free(bpb);free(rootdir);free(root_buffer);free(file);free(buffer);
+	free(buffer);
 
 	return 0;
 }
@@ -234,71 +256,49 @@ struct image*curimg=0;
 
 struct object *img(struct objectArray* args)
 {
-	if(args->count <2){
-		KLOGE("use img <diskletter> <file name>\n");
-		return 0;
-	}
-	int diskid = *(char*)args->objs[0].data-'a';
-	struct disk *dsk =disks[diskid];
-	BPB* bpb = read_first_sector(dsk);
-	RootDir* rootdir=calculateRootDir(bpb);
-	u8* root_buffer = readRootDir(dsk,rootdir,bpb);
-	DirEntry *file = find_file(root_buffer,bpb,args->objs[1].data);
-	if(!file) 
-	{
-		KLOGE("file not found\n");
-		free(bpb);free(rootdir);free(root_buffer);
-	
+	if(args->count <1){
+		KLOGE("use img <path>\n");
 		return 0;
 	}
 	if(curimg)free(curimg);
-	curimg = kalloc(get_file_size(file,bpb));
-	load_file(dsk,file,bpb,rootdir,(void*)curimg);
-
-	free(bpb);free(rootdir);free(root_buffer);free(file);
+	curimg = read(args->objs[0].data,0);
 
 	return 0;
 }
 struct object *hexdump_cmd(struct objectArray* args)
 {
-	if(args->count <2){
-		KLOGE("use hexdump <diskletter> <file name>\n");
+	if(args->count <1){
+		KLOGE("use hexdump <path>\n");
 		return 0;
 	}
-	int diskid = *(char*)args->objs[0].data-'a';
-	struct disk *dsk =disks[diskid];
-	BPB* bpb = read_first_sector(dsk);
-	RootDir* rootdir=calculateRootDir(bpb);
-	u8* root_buffer = readRootDir(dsk,rootdir,bpb);
-	DirEntry *file = find_file(root_buffer,bpb,args->objs[1].data);
-	if(!file) 
-	{
-		KLOGE("file not found\n");
-		free(bpb);free(rootdir);free(root_buffer);
-	
-		return 0;
-	}
-	void *buffer = kalloc(get_file_size(file,bpb));
-	load_file(dsk,file,bpb,rootdir,buffer);
+	int size = 0;
 
-	hexdump(buffer,file->file_size);
+	void *buffer = read(args->objs[0].data,&size);
+        if(!buffer)return 0;
 
-	free(bpb);free(rootdir);free(root_buffer);free(buffer);
+	hexdump(buffer,size);
 
+	free(buffer);
+
+	return 0;
+}
+
+struct object *seldisk_cmd(struct objectArray *args)
+{
+	if(args->count <1){
+                KLOGE("use seldisk <code>\n");
+                return 0;
+        }
+	seldisk(args->objs[0].data);
 	return 0;
 }
 
 struct object *ls(struct objectArray* args)
 {
-	if(args->count <1){
-                KLOGE("use ls <diskletter>\n");
-                return 0;
-        }
-        int diskid = *(char*)args->objs[0].data-'a';
-        struct disk *dsk =disks[diskid];
-        BPB* bpb = read_first_sector(dsk);
+        struct disk *dsk =disks[current_diskid];
+        BPB* bpb = read_first_sector(current_partstart,dsk);
         RootDir* rootdir=calculateRootDir(bpb);
-        u8* root_buffer = readRootDir(dsk,rootdir,bpb);
+        u8* root_buffer = readRootDir(current_partstart,dsk,rootdir,bpb);
         print_dir(root_buffer,bpb);
 	
 	free(bpb);free(rootdir);free(root_buffer);
@@ -327,13 +327,16 @@ struct object *random(struct objectArray* args)
 struct object *dump_mem(struct objectArray*args)
 {
 	if(args->count<2){
-                KLOGE("use dmpmem <start> <end>\n");
+                KLOGE("use dmpmem <start> <len>\n");
                 return 0;
         }
         u32 start = str2int(args->objs[0].data);
-        u32 end = str2int(args->objs[1].data);
+        u32 len = str2int(args->objs[1].data);
 
-        hexdump((void*)start,end-start);
+	print_hex(start);
+	print("\n");
+
+        hexdump((void*)start,len);
         return 0;
 }
 
@@ -354,75 +357,22 @@ struct object* uptime(struct objectArray *args)
 
 struct object* touch(struct objectArray *args)
 {
-	if(args->count<2)
+	if(args->count<1)
 	{
-		KLOGE("use touch <diskletter> <filename>");
+		KLOGE("use touch <filename>");
 		return 0;
 	}
+	write(args->objs[0].data,0,0);
 
-	int diskid = *(char*)args->objs[0].data-'a';
-	struct disk *dsk =disks[diskid];
-	BPB* bpb = read_first_sector(dsk);
-	RootDir* rootdir=calculateRootDir(bpb);
-	u8* root_buffer = readRootDir(dsk,rootdir,bpb);
-	
-	DirEntry* file = create_file(root_buffer,bpb,args->objs[1].data);
-	if(!file && file != LONG_NAME)
-	{
-		KLOGE("cant create file\n");
-
-		free(bpb);free(rootdir);free(root_buffer); free(file);
-	
-		return 0;
-	} else if(file == LONG_NAME) 
-	{
-         KLOGE("the file name is too long");
-
-        free(bpb);free(rootdir);free(root_buffer); free(file);
-	return 0;
-	}
-
-	writeRootDir(dsk,rootdir,bpb,root_buffer);
-	
-	free(bpb);free(rootdir);free(root_buffer);
 	return 0;
 }
 struct object *wf(struct objectArray* args)
 {
-	if(args->count <3){
-		KLOGE("use wf <diskletter> <file name> <data>\n");
+	if(args->count <2){
+		KLOGE("use wf <path> <data>\n");
 		return 0;
 	}
-	int diskid = *(char*)args->objs[0].data-'a';
-	struct disk *dsk =disks[diskid];
-	BPB* bpb = read_first_sector(dsk);
-	RootDir* rootdir=calculateRootDir(bpb);
-	u8* root_buffer = readRootDir(dsk,rootdir,bpb);
-	DirEntry *file = find_file(root_buffer,bpb,args->objs[1].data);
-	if(!file) 
-	{
-
-        file = create_file(root_buffer,bpb,args->objs[1].data);
-	if(!file && file != LONG_NAME)
-	{
-		KLOGE("file not found and cant create of it\n");
-
-		free(bpb);free(rootdir);free(root_buffer); free(file);
-	
-		return 0;
-	} else if(file == LONG_NAME) 
-	{
-         KLOGE("the file name is too long");
-
-        free(bpb);free(rootdir);free(root_buffer); free(file);
-	return 0;
-	}
-
-	}
-	write_file(dsk,file,bpb,rootdir,args->objs[2].data,strlen(args->objs[2].data));
-
-	writeRootDir(dsk,rootdir,bpb,root_buffer);
-	free(bpb);free(rootdir);free(root_buffer);free(file);
+	write(args->objs[0].data,args->objs[1].data,strlen(args->objs[1].data));
 
 	return 0;
 }
@@ -499,11 +449,10 @@ struct object *poweroff(struct objectArray *args)
 	}
 
 	asm volatile("sti");
+	reboot(0);
 
 	return 0;
 }
-
-
 
 
 void emptyprocess()
@@ -512,7 +461,7 @@ void emptyprocess()
 }
 s32 old_mouse_x=0,old_mouse_y=0;
 
-void testdrawframe()
+void testdrawmouse()
 {
 	if (mouse_x == old_mouse_x && mouse_y == old_mouse_y) return;
     	
@@ -532,7 +481,11 @@ void testdrawimage()
 
 extern void keyboard_isr_handler();
 
-void main(){
+void main(char *cmdline){
+#ifdef BIOSDISK
+	init_bios();
+#endif
+
 	enableacpi();
 
 	pic_remap();
@@ -543,7 +496,9 @@ void main(){
 	
 	find_pci_devices();
 
+#ifdef MOUSE
 	mouse_init();
+#endif
 
 	register_function("reboot", reboot,0);
 	register_function("poweroff", poweroff,0);
@@ -554,6 +509,7 @@ void main(){
 	register_function("hexdump",hexdump_cmd,"print file in hexview");
 	register_function("cat",cat,"print file to console");
 	register_function("ls",ls,"print files in dirrectory");
+	register_function("seldisk",seldisk_cmd,"select disk");
 	register_function("dmpdsk",dump_disk,"lowlevel dump disk sectors");
 	register_function("dmpmem",dump_mem,"lowlevel dump RAM");
 	register_function("lspci",lspci,"print all pci device info");
@@ -572,7 +528,9 @@ void main(){
 	
 	create_process((u32)windowsmanager,"windows manager",0);
 	create_process((u32)start_shell,"shell",ega2fb);
-	create_process((u32)process_mouse,"mouse demo",testdrawframe);
+#ifdef MOUSE
+	create_process((u32)process_mouse,"mouse demo",testdrawmouse);
+#endif
 	create_process((u32)emptyprocess,"image demo",testdrawimage);
 
 	is_interrupt_enabled = true;

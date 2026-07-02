@@ -138,20 +138,6 @@ void ide_add_disk(u16 base, u16 control)
 		ide_drives[idx].drive = drive;
 
 		struct disk* d = kalloc(sizeof(struct disk));
-		char name_buf[8];
-		name_buf[0] = 'h';
-		name_buf[1] = 'd';
-		name_buf[2] = 'a' + idx;
-		name_buf[3] = 0;
-
-		d->name = strdup(name_buf);
-		d->id = idx;
-		d->size = sectors * 512;
-		d->lba_read = ide_read_sectors;
-		d->lba_write = ide_write_sectors;
-
-		disks[idx] = d;
-
 		char model[41];
 		for(int i = 0; i < 20; i++)
 		{
@@ -167,12 +153,19 @@ void ide_add_disk(u16 base, u16 control)
 			model[len] = 0;
 			len--;
 		}
+		d->name = strdup(model);
+		d->id = idx;
+		d->size = sectors;
+		d->lba_read = ide_read_sectors;
+		d->lba_write = ide_write_sectors;
+
+		disks[idx] = d;
+
+		read_mbr(d);	
 
 		KLOGI("IDE disk connected: ");
-		print(d->name);
-		print(" (");
 		print(model);
-		print(")\n");
+		print("\n");
 	}
 }
 

@@ -133,11 +133,9 @@ void keyboard_handler()
 
 	/*if(ctrl_pressed&&keyboard_map[last_pressed_key]=='c') {
 		print("^C\n");
-		asm volatile("cli");
 		kill(0);
 		create_process((u32)start_shell);
 		last_pressed_key=0;
-		asm volatile("sti");
 	}*/	
 
 	if(ctrl_pressed&&keyboard_map[last_pressed_key]>='0'&&keyboard_map[last_pressed_key]<='9') {

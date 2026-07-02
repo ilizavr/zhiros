@@ -26,6 +26,7 @@ print("\n");
 
 void pci_check_disk(u8 bus, u8 slot, u8 func)
 {
+
 	u16 vendor_id = pci_read_word(bus, slot, func, 0x00);
 	if (vendor_id == 0xFFFF) return; 
     
@@ -49,7 +50,6 @@ void pci_check_disk(u8 bus, u8 slot, u8 func)
 	}
 
 	ide_add_disk(base,control);
-
 }
 
 void find_pci_devices()
@@ -61,17 +61,26 @@ void find_pci_devices()
             u16 vendor_id = pci_read_word(bus, slot, 0, 0x00);
             if (vendor_id == 0xFFFF) continue; 
 
+#ifdef IDEDISK
             pci_check_disk(bus, slot, 0);
-            check_e1000(bus, slot, 0);
-	    
+#endif
+#ifdef E1000
+            check_e1000(bus, slot, 0);	    
+#endif
 
             u16 header_type = pci_read_word(bus, slot, 0, 0x0E);
             if (header_type & 0x80) 
             {
                 for (u8 func = 1; func < 8; func++)
                 {
+
+#ifdef IDEDISK
                     pci_check_disk(bus, slot, func);
-            	    check_e1000(bus, slot, func);
+#endif
+#ifdef E1000
+                    check_e1000(bus, slot, func);	    
+#endif
+
                 }
             }
         }

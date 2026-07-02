@@ -34,6 +34,7 @@ void kill(int pid)
 	free(tasks[pid]->name);
 	free(tasks[pid]);
 	tasks[pid] = 0;
+	pic_eoi();
 	asm volatile("sti");
 }
 
