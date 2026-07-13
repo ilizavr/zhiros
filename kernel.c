@@ -243,9 +243,14 @@ struct object *cat(struct objectArray* args)
 		KLOGE("use cat <path>\n");
 		return 0;
 	}
+
+        u64 size = 0;
+	void *buffer = kalloc(5000);	
+	write_buf(buffer,args->objs[0].data,11);
+	u64 res = read(STUB_FD,buffer,size);
 	
-	void *buffer = read(args->objs[0].data,0);
-	if(!buffer)return 0;
+	if(res == 0)return 0;
+	
 	print(buffer);
 
 	free(buffer);
@@ -261,7 +266,13 @@ struct object *img(struct objectArray* args)
 		return 0;
 	}
 	if(curimg)free(curimg);
-	curimg = read(args->objs[0].data,0);
+	
+	u64 size = 0;
+	void *buffer = kalloc(5000);
+	
+	u64 res = read(STUB_FD,buffer,size);
+       
+	if(res == 0)return 0;
 
 	return 0;
 }
@@ -271,10 +282,12 @@ struct object *hexdump_cmd(struct objectArray* args)
 		KLOGE("use hexdump <path>\n");
 		return 0;
 	}
-	int size = 0;
-
-	void *buffer = read(args->objs[0].data,&size);
-        if(!buffer)return 0;
+	 u64  size = 0;
+    
+	void *buffer = kalloc(5000);
+	u64 res = read(STUB_FD,buffer,size);
+        
+	if(size == 0)return 0;
 
 	hexdump(buffer,size);
 
@@ -362,7 +375,8 @@ struct object* touch(struct objectArray *args)
 		KLOGE("use touch <filename>");
 		return 0;
 	}
-	write(args->objs[0].data,0,0);
+
+	write(STUB_FD,args->objs[0].data,0,0);
 
 	return 0;
 }
@@ -372,7 +386,7 @@ struct object *wf(struct objectArray* args)
 		KLOGE("use wf <path> <data>\n");
 		return 0;
 	}
-	write(args->objs[0].data,args->objs[1].data,strlen(args->objs[1].data));
+	write(STUB_FD,args->objs[0].data,args->objs[1].data,strlen(args->objs[1].data));
 
 	return 0;
 }

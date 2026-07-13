@@ -1,3 +1,5 @@
+#define STUB_FD 1040
+
 u32 current_diskid = 0;
 u32 current_partstart = 0;
 
@@ -20,9 +22,28 @@ void seldisk(char *code)
 
 }
 
-void* read(char *path, int *size)
+void write_buf(char* buf,char* data,int size) {
+for(int i = 0;i<size;i++){
+buf[i] = data[i];
+}
+
+}
+
+char* read_buf(char* buf,int size) {
+char* new_b = (char*)kalloc(sizeof(char) * size);
+
+for(int i = 0;i<size;i++){
+new_b[i] = buf[i];
+}
+new_b[size] = '\0';
+
+return new_b;
+}
+
+u64 read(int fd, void* buf, u64 count)
 {
 	struct disk*dsk = disks[current_diskid];
+        char* path = read_buf((char*)buf,11);
 
 	BPB* bpb = read_first_sector(current_partstart,dsk);
         RootDir* rootdir=calculateRootDir(bpb);
@@ -38,18 +59,21 @@ void* read(char *path, int *size)
 		return 0;
         }
 
-	void *buffer = kalloc(get_file_size(file,bpb));
-        *(char*)buffer = 0;
-        load_file(current_partstart,dsk,file,bpb,rootdir,buffer);
+        *(char*)buf = 0;
+        
+	load_file(current_partstart,dsk,file,bpb,rootdir,buf);
 
-	if(size)*size = file->file_size;
+	count = file->file_size;
 
 	free(bpb);free(rootdir);free(root_buffer);free(file);
 
-	return buffer;
+	return 1;
 }
 
-void write(char* path,char* buffer, int size)
+//there's fd parameter is a stub to compatiable POSIX standard
+//the file name stores in first 11 bytes of buffer buf Since there's no file descriptor
+//system to generate these ones based on name. That's temporarly
+void write(int fd,char* path,const void*  buf, u64 count)
 {
         struct disk *dsk =disks[current_diskid];
         BPB* bpb = read_first_sector(current_partstart,dsk);
@@ -77,7 +101,7 @@ void write(char* path,char* buffer, int size)
 
         }
 
-	if(buffer&&size)write_file(current_partstart,dsk,file,bpb,rootdir,buffer,size);
+	if(buf&&count)write_file(current_partstart,dsk,file,bpb,rootdir,buf,count);
 
         writeRootDir(current_partstart,dsk,rootdir,bpb,root_buffer);
         free(bpb);free(rootdir);free(root_buffer);free(file);
