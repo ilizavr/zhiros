@@ -268,7 +268,8 @@ struct object *img(struct objectArray* args)
 	if(curimg)free(curimg);
 	
 	u64 size = 0;
-	void *buffer = kalloc(5000);
+	void *buffer = kalloc(5000);	
+	write_buf(buffer,args->objs[0].data,11);
 	
 	u64 res = read(STUB_FD,buffer,size);
        
@@ -528,29 +529,29 @@ void main(char *cmdline){
 #endif
 
 	register_function("reboot", reboot,0);
-	register_function("poweroff", poweroff,0);
-	register_function("random", random,"random value");
+	register_function("poweroff", poweroff,"shut down the system");
+	register_function("random", random,"generate a random value");
 	register_function("img",img,"view image from file");
-	register_function("wf",wf,"write to file");
+	register_function("wf",wf,"write to a file");
 	register_function("mkdir",mkdirn,"make a directory,or throw a warning if it already exists");
-	register_function("touch",touch,"create file");
+	register_function("touch",touch,"create an empty file");
 	register_function("hexdump",hexdump_cmd,"print file in hexview");
-	register_function("cat",cat,"print file to console");
-	register_function("ls",ls,"print files in dirrectory");
+	register_function("cat",cat,"print file in the console");
+	register_function("ls",ls,"print files of this  directory");
 	register_function("seldisk",seldisk_cmd,"select disk");
-	register_function("dmpdsk",dump_disk,"lowlevel dump disk sectors");
-	register_function("dmpmem",dump_mem,"lowlevel dump RAM");
-	register_function("lspci",lspci,"print all pci device info");
-	register_function("lsblk",lsblk,"print all disk");
-	register_function("ps",ps,"list process");
-	register_function("kill",kill_cmd,"kill process");
-	register_function("uptime",uptime,0);
-	register_function("sleep",sleep_cmd,"test sleep");
-	register_function("date",date,"print date and time");
-	register_function("fetch",screenfetch,"short system information");
-	register_function("clear",clear,"clear screen");
-	register_function("echo",echo,"print to console");
-	register_function("help",help,0);
+	register_function("dmpdsk",dump_disk,"lowlevel dump of disk sectors");
+	register_function("dmpmem",dump_mem,"lowlevel dump of RAM");
+	register_function("lspci",lspci,"print info of all pci devices");
+	register_function("lsblk",lsblk,"print all the disks system detected");
+	register_function("ps",ps,"print list of living processes");
+	register_function("kill",kill_cmd,"kill a process");
+	register_function("uptime",uptime,"time of up of this PC");
+	register_function("sleep",sleep_cmd,"sleep off the system");
+	register_function("date",date,"print current date and time");
+	register_function("fetch",screenfetch,"short system's info");
+	register_function("clear",clear,"clear the screen");
+	register_function("echo",echo,"print an info to console");
+	register_function("help",help,"print this stuff");
 	
 	KLOGI("system functions registered\n");	
 	
