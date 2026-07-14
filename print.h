@@ -3,6 +3,10 @@
 #define VGA_OFFSET_LOW 0x0f
 #define VGA_OFFSET_HIGH 0x0e
 
+void *kalloc(u32 size);
+void KLOGF(char *string);
+void print(char * string);
+
 u8 WIDTH = 80,HEIGHT=25;
 
 void *memset(void *s, int c, size_t n) {
@@ -35,11 +39,52 @@ int memcmp(const void *s1, const void *s2, size_t n) {
         }
         return 0;
 }
+
+
 size_t strlen(const char *s) {
         size_t len = 0;
         while (*s++) len++;
         return len;
 }
+
+char* strcat(char* s1,char* s2) {
+int len1 = strlen(s1);
+int len2 = strlen(s2);
+
+char* new_str = (char*)kalloc(len1 + len2 + 1);
+
+int i = 0;
+int j = 0;
+
+while(i < len1){
+new_str[i] = s1[i];
+++i;
+}
+
+
+++i;
+
+while(j < len2){
+new_str[i] = s2[j];
+++j;
+++i;
+}
+
+++i;
+
+new_str[i] = '\0';
+
+return new_str;
+}
+
+void assert(bool expression,char* msg){
+if(!expression){
+KLOGF("assertion failed because of ");
+print(msg);
+print("\n");
+}
+}
+
 int strncmp(const char *s1, const char *s2, size_t n) {
         while (n && *s1 && (*s1 == *s2)) { s1++; s2++; n--; }
         if (n == 0) return 0;

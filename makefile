@@ -10,7 +10,7 @@ create_rd:
 	mkfs.fat -F16 iso/boot/initrd.img
 build:
 	mkdir build
-	nasm bios.asm -o build/bios
+	$(ASMC) bios.asm -o build/bios
 	xxd -i build/bios > build/bios_asm_hex.h
 	$(CC) $(CFLAGS) -c kernel.c -o build/kernel_c.o
 	$(ASMC) $(ASMFLAGS) kernel.asm -o build/kernel_asm.o
@@ -23,6 +23,8 @@ run_grub:
 	qemu-system-x86_64 -serial stdio -hda test.img -m 1G -netdev user,id=net0 -device e1000,netdev=net0
 run:
 	qemu-system-x86_64 -serial stdio -kernel build/kernel.bin -initrd iso/boot/initrd.img -m 1G -netdev user,id=net0 -device e1000,netdev=net0
+run_all:
+	$(MAKE) clean build build_grub run_grub  
 clean:
 	rm -rf build
 	rm -f test.img
