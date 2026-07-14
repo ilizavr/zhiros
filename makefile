@@ -20,7 +20,7 @@ build:
 build_grub:
 	grub-mkrescue -o test.img iso/
 run_grub:
-	qemu-system-x86_64 -serial stdio -hda test.img -m 1G -netdev user,id=net0 -device e1000,netdev=net0
+	qemu-system-x86_64 -serial stdio -hda test.img -m 1G -netdev user,id=net0 -device e1000,netdev=net0 --full-screen
 run:
 	qemu-system-x86_64 -serial stdio -kernel build/kernel.bin -initrd iso/boot/initrd.img -m 1G -netdev user,id=net0 -device e1000,netdev=net0
 run_all:
