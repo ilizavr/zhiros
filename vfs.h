@@ -142,7 +142,10 @@ int mkdir(const char *path, int  mode)
         return 0;
 	}
 
-	writeRootDir(current_partstart,dsk,rootdir,bpb,root_buffer);
+	u32 clus = find_free_cluster(current_partstart,dsk,bpb,rootdir);
+        
+	//write_cluster(current_partstart,clus,dsk,bpb,rootdir,
+	writeClusterDir(current_partstart,(u16)clus,dsk,rootdir,bpb,root_buffer);
 	}
 	else
 	{

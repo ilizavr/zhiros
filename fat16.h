@@ -234,7 +234,6 @@ void load_file(u32 partstart,struct disk *dsk, DirEntry *file, BPB *bpb, RootDir
         free(fat_sector);
     }
 }
-
 u32 find_free_cluster(u32 partstart,struct disk *dsk, BPB *bpb, RootDir *root)
 {
     u8 fat_sector[512];
@@ -364,3 +363,143 @@ void writeRootDir(u32 partstart,struct disk *dsk, RootDir *root, BPB *bpb, u8 *r
         dsk->lba_write(dsk->id, partstart+root->root_start + i, root_buffer + (i * bpb->bytes_per_sector), 1);
     }
 }
+
+void writeClusterDir(u32 partstart,u16 clus,struct disk *dsk,RootDir*root,BPB*bpb,u8*root_buffer)
+{
+for(u32 i=0;i<bpb->bytes_per_sector*bpb->sectors_per_cluster/512;i++)
+{
+dsk->lba_write(dsk->id,partstart+root->root_start+clus+i,root_buffer+(i*bpb->bytes_per_sector),1);
+}
+}
+
+
+
+u8* read_cluster(u32 partstart,u16 init_cluster,struct disk *dsk,BPB *bpb,RootDir*root){
+
+   u16 cluster =init_cluster;
+   u32 file_offset = 0;
+   u8* buf = kalloc(bpb->bytes_per_sector*bpb->sectors_per_cluster);
+
+    while (cluster < 0xFFF8 && file_offset < bpb->bytes_per_sector*bpb->sectors_per_cluster/512)
+    {
+        u32 lba = root->data_start + (cluster - 2) * bpb->sectors_per_cluster;
+
+        for (u32 i = 0; i < bpb->sectors_per_cluster; i++)
+        {
+            dsk->lba_read(dsk->id, partstart+lba + i,buf + file_offset, 1);
+            file_offset += bpb->bytes_per_sector;
+        }
+
+        u32 fat_offset = cluster * 2;
+        u8 *fat_sector = kalloc(512);
+
+        dsk->lba_read(dsk->id, partstart+ root->fat_start + fat_offset / 512, fat_sector, 1);
+        cluster = *(u16 *)(fat_sector + fat_offset % 512);
+
+        free(fat_sector);
+    }
+return buf;
+}
+
+void write_cluster(u32 partstart,u16 clus,struct disk *dsk,BPB *bpb, RootDir *root, u8 *data, u32 size)
+{
+    u32 cluster = clus;
+    u32 written = 0;
+
+    while (written < size)
+    {
+        u32 lba = root->data_start + (cluster - 2) * bpb->sectors_per_cluster;
+        for (u32 i = 0; i < bpb->sectors_per_cluster && written < size; i++)
+        {
+            dsk->lba_write(dsk->id,partstart+lba + i, data + written, 1);
+            written += bpb->bytes_per_sector;
+        }
+
+        u16 next = read_fat(partstart,dsk, cluster, bpb, root);
+        if (next >= 0xFFF8)
+        {
+            next = find_free_cluster(partstart,dsk, bpb, root);
+            if (next == 0)
+                return;
+            write_fat(partstart,dsk, cluster, next, bpb, root);
+        }
+        cluster = next;
+    }
+
+        return;
+}
+
+
+u8* load_directory(u32 first_cluster,u32 partstart,struct disk *dsk, BPB *bpb, RootDir *root)
+{
+if(first_cluster == 0)
+{
+return readRootDir(partstart,dsk,root,bpb);
+}
+
+u32 bytes_on_cluster = bpb->sectors_per_cluster * 512;
+u8* buf = kalloc(bytes_on_cluster);
+
+u32 lba=root->data_start+(first_cluster-2)*bpb->sectors_per_cluster;
+
+for(int i=0;i<bpb->sectors_per_cluster;i++){
+dsk->lba_read(dsk->id,partstart+lba+i,buf+i*512,1);
+
+}
+
+return buf;
+}
+
+u16 resolve_path(const char* path,u32 partstart,struct disk *dsk, DirEntry *file, BPB *bpb, RootDir *root)
+{
+if(!strcmp(path,"/") || !strcmp(path,"") || path[0] == '\0')
+{
+//Why do i return 0? So,that's because of rootness of the current one.so,,thats should be correct the stuff
+return 0;
+}
+
+char  cpy[256];
+strcpy(cpy,path);
+
+u16 curr_cluster = 0;
+u8* dir_data = 0;
+
+char* sym = strtok(cpy,"/");
+while(sym != 0)
+{
+dir_data = load_directory(curr_cluster,partstart,dsk,bpb,root);
+
+DirEntry* entries = (DirEntry*)dir_data;
+u16 entry_count = bpb->bytes_per_sector * bpb->sectors_per_cluster / 32;
+
+if(curr_cluster==0)
+{
+entry_count=bpb->root_entries;
+}
+
+u16 found_cls = 0;
+for(int i =0;i<entry_count;i++)
+{
+if((entries+i)->name[0] ==0x00)break;
+if((entries+i)->name[0]==0xE5)continue;
+
+char* converted = convert_filename((entries+i)->name);
+if(!strcmp(converted,sym))
+{
+found_cls = (entries+i)->first_cluster;
+break;
+}
+free(converted);
+
+
+free(dir_data);
+if(found_cls==0)return 0;
+curr_cluster = found_cls;
+sym=strtok(0,"/");
+}
+return curr_cluster;
+}
+
+}
+
+
