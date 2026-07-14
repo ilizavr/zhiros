@@ -391,6 +391,19 @@ struct object *wf(struct objectArray* args)
 	return 0;
 }
 
+struct object* mkdirn(struct objectArray* args)
+{
+if(args->count<1)
+{
+KLOGE("use mkdir <dirname>\n");
+return 0;
+}
+
+mkdir(args->objs[0].data,STUB_MODE);
+return 0;
+}
+
+
 struct object *kill_cmd(struct objectArray *args)
 {
 	if(args->count<1){
@@ -519,6 +532,7 @@ void main(char *cmdline){
 	register_function("random", random,"random value");
 	register_function("img",img,"view image from file");
 	register_function("wf",wf,"write to file");
+	register_function("mkdir",mkdirn,"make a directory,or throw a warning if it already exists");
 	register_function("touch",touch,"create file");
 	register_function("hexdump",hexdump_cmd,"print file in hexview");
 	register_function("cat",cat,"print file to console");

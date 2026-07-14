@@ -1,4 +1,5 @@
-#define STUB_FD 1040
+#define STUB_FD 0x1040
+#define STUB_MODE 0x100333
 
 u32 current_diskid = 0;
 u32 current_partstart = 0;
@@ -58,6 +59,15 @@ u64 read(int fd, void* buf, u64 count)
 
 		return 0;
         }
+        if(file->attr != 0x20)
+	{
+        KLOGW("not a file: ");
+	print(file->name);
+	print("\n");
+
+	free(bpb);free(rootdir);free(root_buffer);
+	return 0;
+	}
 
         *(char*)buf = 0;
         
@@ -83,7 +93,7 @@ void write(int fd,char* path,const void*  buf, u64 count)
         if(!file)
         {
 
-        file = create_file(root_buffer,bpb,path);
+        file = create_file(root_buffer,bpb,path,0x20);
         if(!file && file != LONG_NAME)
         {
                 KLOGE("file not found and cant create of it\n");
@@ -106,3 +116,41 @@ void write(int fd,char* path,const void*  buf, u64 count)
         writeRootDir(current_partstart,dsk,rootdir,bpb,root_buffer);
         free(bpb);free(rootdir);free(root_buffer);free(file);
 }
+
+int mkdir(const char *path, int  mode) 
+{
+
+        struct disk *dsk =disks[current_diskid];
+        BPB* bpb = read_first_sector(current_partstart,dsk);
+        RootDir* rootdir=calculateRootDir(bpb);
+	u8* root_buffer = readRootDir(current_partstart,dsk,rootdir,bpb);
+        DirEntry* file = find_file(root_buffer,bpb,path);
+	if(!file)
+	{
+	file = create_file(root_buffer,bpb,path,0x10);
+	
+	if(!file)
+	{
+        KLOGE("cannot create a directory\n");
+	free(bpb);free(rootdir);free(root_buffer);free(file);
+	return 0;
+	}
+	else if(file == LONG_NAME)
+	{
+         KLOGE("the file name is too long");
+        free(bpb);free(rootdir);free(root_buffer); free(file);
+        return 0;
+	}
+
+	writeRootDir(current_partstart,dsk,rootdir,bpb,root_buffer);
+	}
+	else
+	{
+        KLOGW("creating of existing directory\n");
+	}
+
+        free(bpb);free(rootdir);free(root_buffer);free(file);
+
+	return 0;
+}
+

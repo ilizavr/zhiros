@@ -37,7 +37,7 @@ typedef struct
 typedef struct
 {
     u8 name[11];
-    u8 attr;
+    u8 attr; //0x20 for a file,0x10 for a directory
     u8 reserved[14];
     u16 first_cluster;
     u32 file_size;
@@ -87,6 +87,23 @@ char *convert_filename(const char *file)
     return ret;
 }
 
+char* convert_dirname(const char* file)
+{
+char* ret = (char*)kalloc(11);
+if(!ret) return 0;
+for(int i=0;i<11;i++)
+{
+ret[i] = ' ';
+}
+int i=0;
+while(file[i] != '\0')
+{
+ret[i] = upchr(file[i]);
+++i;
+}
+
+return ret;
+}
 
 BPB *read_first_sector(u32 partstart,struct disk *dsk)
 {
@@ -145,8 +162,16 @@ void print_dir(u8 *root_buffer, BPB* bpb)
 	if (c == 0xE5)
 	    continue;
 	if ((entry+i)->attr == 0x0f) continue;
+	if((entry+i)->attr==0x20)
+	{
 	print((entry+i)->name);
 	print("\n");
+	}else if((entry+i)->attr=0x10)
+	{
+        print_color((entry+i)->name,0b0011);
+	print("\n");
+	}
+
     }
 
 }
@@ -265,12 +290,13 @@ void write_fat(u32 partstart,struct disk *dsk, u32 cluster, u16 next, BPB *bpb, 
     }
 }
 
-DirEntry *create_file(u8 *root_buffer, BPB *bpb, char *name)
+DirEntry *create_file(u8 *root_buffer, BPB *bpb, char *name,u8 attr)
 {
     if (strlen(name) > 11)
         return (DirEntry*)LONG_NAME;
 
-name=convert_filename(name);
+if(attr==0x20) name=convert_filename(name);
+else if(attr==0x10) name=convert_dirname(name);
 
     u16 entries = bpb->root_entries;
 
@@ -283,10 +309,10 @@ name=convert_filename(name);
         if (c == 0x00 || c == 0xE5)
         {
             memcpy((entry + i)->name, name, 11);
-            (entry + i)->attr = 0x20;
+            (entry + i)->attr = attr;
             (entry + i)->first_cluster = 0x00;
             (entry + i)->file_size = 0x00;
-		free(name);
+	    free(name);
             return (entry + i);
         }
     }
