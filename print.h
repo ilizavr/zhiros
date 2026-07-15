@@ -356,3 +356,57 @@ void hexdump(char *data, u32 size)
         print("|\n");
     }
 }
+
+char* strtok(char* str, const char* delim) {
+    static char* saved = 0;
+    char* token_start;
+    const char* d;
+
+    if (str != 0) {
+        saved = str;
+    }
+
+    if (saved == 0 || *saved == '\0') {
+        return 0;
+    }
+
+    token_start = saved;
+    while (*token_start != '\0') {
+        int is_delim = 0;
+        for (d = delim; *d != '\0'; d++) {
+            if (*token_start == *d) {
+                is_delim = 1;
+                break;
+            }
+        }
+        if (!is_delim) break;
+        token_start++;
+    }
+
+    if (*token_start == '\0') {
+        saved = 0;
+        return 0;
+    }
+
+    saved = token_start;
+    while (*saved != '\0') {
+        int is_delim = 0;
+        for (d = delim; *d != '\0'; d++) {
+            if (*saved == *d) {
+                is_delim = 1;
+                break;
+            }
+        }
+        if (is_delim) break;
+        saved++;
+    }
+
+    if (*saved != '\0') {
+        *saved = '\0';
+        saved++;
+    } else {
+        saved = 0;
+    }
+
+    return token_start;
+}
