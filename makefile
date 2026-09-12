@@ -17,6 +17,12 @@ build:
 	ld $(LDFLAGS) -o build/kernel.bin build/kernel_asm.o build/kernel_c.o
 	
 	cp build/kernel.bin iso/boot/kernel.bin
+build_tcp_test:
+	$(MAKE) build CFLAGS="$(CFLAGS) -DNET_TCP_RUNTIME_TEST"
+net_test:
+	$(CC) -std=c99 -Wall -Wextra -Werror -Wno-unused-function -I. tests/net_protocol_test.c -o /tmp/zhiros-net-test
+	/tmp/zhiros-net-test
+	rm -f /tmp/zhiros-net-test
 build_grub:
 	grub-mkrescue -o test.img iso/
 run_grub:
