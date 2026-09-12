@@ -11,6 +11,34 @@ u32 pci_read_dword(u8 bus, u8 slot, u8 func, u8 offset)
 	port_dword_out(0xCF8, address);
 	return port_dword_in(0xCFC);
 }
+
+void pci_write_word(u8 bus, u8 slot, u8 func, u8 offset, u16 value)
+{
+	u32 address = (u32)((bus << 16) | (slot << 11) | (func << 8) | (offset & 0xFC) | 0x80000000);
+	port_dword_out(0xCF8, address);
+	port_word_out(0xCFC + (offset & 2), value);
+}
+
+int pci_find_device(u16 wanted_vendor, u16 wanted_device,
+                   u8 *bus_out, u8 *slot_out, u8 *func_out)
+{
+	for (u32 bus = 0; bus < 256; bus++) {
+		for (u8 slot = 0; slot < 32; slot++) {
+			for (u8 func = 0; func < 8; func++) {
+				u16 vendor = pci_read_word((u8)bus, slot, func, 0x00);
+				u16 device = pci_read_word((u8)bus, slot, func, 0x02);
+				if (vendor != wanted_vendor || device != wanted_device)
+					continue;
+				if (bus_out) *bus_out = (u8)bus;
+				if (slot_out) *slot_out = slot;
+				if (func_out) *func_out = func;
+				return 0;
+			}
+		}
+	}
+	return -1;
+}
+
 volatile u32 addressE1000;
 
 void check_e1000(u32 bus, u32 slot, u32 func){

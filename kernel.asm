@@ -26,6 +26,7 @@ global timer_isr_handler
 global context_switch
 
 extern _multiboot_entry
+extern init_serial
 extern keyboard_handler
 extern timerticks
 extern ticks
@@ -35,12 +36,18 @@ extern schedule
 _start:
  cli
  mov edx, eax
+ mov ecx, ebx
  call init_gdt
 
  mov esp, stack
+ push edx
+ push ecx
+ call init_serial
+ pop ecx
+ pop edx
 
  push edx
- push ebx
+ push ecx
  call _multiboot_entry
 
  jmp $
