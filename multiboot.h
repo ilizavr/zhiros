@@ -44,12 +44,6 @@ __attribute__((packed)) struct multiboot_mod_list
 short test_video_buffer[100*100+0x40];
 
 void _multiboot_entry(struct multiboot_info* mbi,u32 magic){
-	if(mbi->framebuffer_type==1){
-		video = test_video_buffer+0x20;
-		cls();
-		fbdev_init(mbi->framebuffer_addr,mbi->framebuffer_width,mbi->framebuffer_height,mbi->framebuffer_pitch,mbi->framebuffer_bpp);		
-	}
-
 	if(magic != 0x2BADB002) KLOGF("not multiboot magic");
 	if((mbi->flags&(1<<6)) == 0) KLOGF("mmap not given by multiboot");
 	if(mbi->mods_count<1) KLOGF("multiboot dont give initial ramdisk");
@@ -76,7 +70,14 @@ void _multiboot_entry(struct multiboot_info* mbi,u32 magic){
 	ramdisk_size = mods->mod_end;
 	init_alloc_multiboot(mbi->mmap_addr,mbi->mmap_len,mods->mod_end);
 	
-        add_ram_disk("Initial Ramdisk",(char*)mods->mod_start,mods->mod_end-mods->mod_start);
+	if(mbi->framebuffer_type==1){
+		video = test_video_buffer+0x20;
+		cls();
+		fbdev_init(mbi->framebuffer_addr, mbi->framebuffer_width, mbi->framebuffer_height, mbi->framebuffer_pitch, mbi->framebuffer_bpp);		
+	}
+
+
+    add_ram_disk("Initial Ramdisk",(char*)mods->mod_start,mods->mod_end-mods->mod_start);
 
 	main((char*)mbi->cmdline);
 }

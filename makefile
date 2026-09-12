@@ -16,11 +16,12 @@ build:
 	$(ASMC) $(ASMFLAGS) kernel.asm -o build/kernel_asm.o
 	ld $(LDFLAGS) -o build/kernel.bin build/kernel_asm.o build/kernel_c.o
 	
+	
 	cp build/kernel.bin iso/boot/kernel.bin
 build_grub:
 	grub-mkrescue -o test.img iso/
 run_grub:
-	qemu-system-x86_64 -serial stdio -hda test.img -m 1G -netdev user,id=net0 -device e1000,netdev=net0
+	qemu-system-x86_64 -serial stdio -hda test.img -m 1G -netdev user,id=net0 -device e1000,netdev=net0 -enable-kvm
 run:
 	qemu-system-x86_64 -serial stdio -kernel build/kernel.bin -initrd iso/boot/initrd.img -m 1G -netdev user,id=net0 -device e1000,netdev=net0
 clean:

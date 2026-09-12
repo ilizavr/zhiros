@@ -102,6 +102,8 @@ mat4 mat4_zero(void) {
 mat4 mat4_rotate_z(float angle) {
     mat4 result = {0};
 
+    angle = angle*PI/180;
+
     mat4_set(&result, 0, 0, cos(angle));
     mat4_set(&result, 0, 1, -sin(angle));
     mat4_set(&result, 1, 0, sin(angle));
@@ -113,6 +115,8 @@ mat4 mat4_rotate_z(float angle) {
 mat4 mat4_rotate_x(float angle) {
     mat4 result = {0};
 
+    angle = angle*PI/180;
+
     mat4_set(&result, 1, 1, cos(angle));
     mat4_set(&result, 1, 2, -sin(angle));
     mat4_set(&result, 2, 1, sin(angle));
@@ -123,6 +127,8 @@ mat4 mat4_rotate_x(float angle) {
 
 mat4 mat4_rotate_y(float angle) {
     mat4 result = {0};
+
+    angle = angle*PI/180;
 
     mat4_set(&result, 0, 0, cos(angle));
     mat4_set(&result, 0, 2, sin(angle));

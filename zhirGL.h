@@ -1,4 +1,4 @@
-Point vertices_cube[] = {
+Point points[] = {
         {200, 450},
         {600, 450},
         {600, 300},
@@ -6,15 +6,27 @@ Point vertices_cube[] = {
         {200, 300},
 };
 
+
+
+vec2 centered;
+int size = sizeof(points)/sizeof(points[0]); 
+int x =0, y = 0;
+
+
 void draw_figure() {
-        int size = sizeof(vertices_cube)/sizeof(vertices_cube[0]);   
 
-        vec2 centered = center_figure(vertices_cube, size);
+        centered = figure_center(points, size);
 
-        fill_polygon(vertices_cube, size,  0xFFFFFF);
+        x += 10;
+
+        // vec2_rotate(points, size, centered, 0.2, 90.0f);
+        vec2_locate(points, size, x, 300, 10);
+
+        fill_polygon(points, size,  0xFFFFFF);
 }
 
 //исполняемая функция в kernel.c
 void draw_some() {
+        clearframe();
 	draw_figure();
 }

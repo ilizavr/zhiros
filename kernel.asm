@@ -69,8 +69,8 @@ _none_interrupt:
 timer_isr_handler:
  cli
  pusha
- add dword [timerticks],10
- add dword [ticks],10
+ add dword [timerticks],2
+ add dword [ticks],2
  call pic_eoi
  call schedule
  popa

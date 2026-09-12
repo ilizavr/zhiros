@@ -1,5 +1,7 @@
 #define PI 3.141592f
 
+// #include "vertices.h"
+
 static inline int abs_val(int x) {
     return (x < 0) ? -x : x;
 }
